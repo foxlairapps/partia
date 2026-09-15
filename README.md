@@ -6,7 +6,7 @@ Hratelný prototyp karetní hry o budování panství, částečně založený n
 
 Pro lokální spuštění stačí otevřít `index.html` v moderním prohlížeči. Spolehlivější je spuštění přes jednoduchý lokální HTTP server; aplikace nemá sestavení ani externí závislosti.
 
-Projekt obsahuje úvodní balíček deseti karet, produkci, aktivní efekty, dobírání, vylepšování, větvený vývoj, až čtyři stavy karty, knihovnu, prohlížení odhazovacího balíčku, animované rozdávání a dvoufázový přechod mezi koly.
+Projekt obsahuje základní sadu 22 karet (001–022), úvodní balíček deseti karet, produkci, aktivní efekty, dobírání, vylepšování, větvený vývoj, až čtyři stavy karty, knihovnu, prohlížení odhazovacího balíčku, animované rozdávání a dvoufázový přechod mezi koly.
 
 Podrobný popis je v `DOKUMENTACE.md`. Soubor `PREDANI_CHATGPT.md` slouží jako stručný kontext pro navázání v nové konverzaci.
 
