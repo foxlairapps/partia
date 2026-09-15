@@ -183,6 +183,17 @@ function newGame() {
   startRound();
 }
 
+function serializableState(phase="turn"){
+  return {version:2,phase,savedAt:new Date().toISOString(),round:state.round,turn:state.turn,resources:state.resources,cards:state.cards,deck:state.deck,slots:state.slots,discard:state.discard,inactive:[...state.inactive],blocked:state.blocked,discoveries:state.discoveries,permanents:state.permanents,specials:state.specials,decreePending:state.decreePending};
+}
+function autosave(phase="turn"){localStorage.setItem("patria-autosave",JSON.stringify(serializableState(phase)));}
+function restoreAutosave(){
+  const raw=localStorage.getItem("patria-autosave");if(!raw)return false;
+  try{const saved=JSON.parse(raw);state={...saved,inactive:new Set(saved.inactive||[]),blocked:saved.blocked||{},permanents:saved.permanents||[],specials:saved.specials||[],discoveries:saved.discoveries||[],slots:[...(saved.slots||[])],busy:false,selectedCard:null};while(state.slots.length<80)state.slots.push(null);render();if(saved.phase==="intermission"){state.busy=true;showRoundTransition(state.round,state.round+1);}else{const unresolved=activeIds().filter(id=>{const card=getCard(id);return card&&getStage(card).onPlay==="block-coin"&&!Object.values(state.blocked).includes(id);});queueBanditBlocks(unresolved);}return true;}catch{return false;}
+}
+function showWelcome(){document.querySelector("#welcome-screen").hidden=false;hideSettingsMenu();}
+function startFromWelcome(){document.querySelector("#welcome-screen").hidden=true;localStorage.removeItem("patria-autosave");newGame();}
+
 function emptyResources() { return Object.fromEntries(Object.keys(R).map(k => [k,0])); }
 function shuffle(items) {
   const copy = [...items];
@@ -236,6 +247,7 @@ function startTurn(increment = true) {
   render();
   animateDeal(drawn);
   queueBanditBlocks(drawn);
+  autosave("turn");
 }
 
 function drawCards(count, loseResources = true) {
@@ -421,7 +433,7 @@ function showDecreeChoice(step){
   state.decreePending=step;pendingActionChoice={type:"decree",step,choices,selectedId:null,selectedResource:null};renderActionChoice();
 }
 function queueBanditBlocks(drawnIds){
-  const bandits=drawnIds.filter(id=>getCard(id)&&getStage(getCard(id)).onPlay==="block-coin");
+  const bandits=drawnIds.filter(id=>getCard(id)&&getStage(getCard(id)).onPlay==="block-coin"&&!Object.values(state.blocked).includes(id));
   if(!bandits.length)return;
   const sourceId=bandits[0],choices=activeIds().filter(id=>id!==sourceId&&!state.blocked[id]&&(getStage(getCard(id)).production.coin||0)>0);
   if(!choices.length)return;
@@ -475,6 +487,7 @@ async function confirmActionChoice(){
   document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;
   if(choice.type==="block"){
     state.blocked[choice.selectedId]=choice.sourceId;state.busy=false;render();
+    autosave("turn");
     if(choice.remainingBandits?.length)queueBanditBlocks(choice.remainingBandits);
     return;
   }
@@ -569,6 +582,7 @@ async function endRound() {
   const remaining=activeIds();
   await animateDiscard(remaining);
   remaining.forEach(discardCard);
+  state.resources=emptyResources();autosave("intermission");
   await showRoundTransition(state.round,state.round+1);
   state.round += 1; state.turn=1;
   state.busy=false;
@@ -650,13 +664,7 @@ async function shuffleAndStartRound() {
 }
 
 function saveGame() {
-  const snapshot={
-    version:1,savedAt:new Date().toISOString(),round:state.round,turn:state.turn,
-    resources:state.resources,cards:state.cards,deck:state.deck,slots:state.slots,
-    discard:state.discard,inactive:[...state.inactive],blocked:state.blocked,discoveries:state.discoveries,permanents:state.permanents,specials:state.specials
-  };
-  localStorage.setItem("patria-saved-game",JSON.stringify(snapshot));
-  notify("Hra je uložená v tomto zařízení.");
+  const blob=new Blob([JSON.stringify(serializableState("intermission"),null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`patria-kolo-${state.round}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify("Soubor uložené hry byl připraven ke stažení.");
 }
 
 function showLibrary() {
@@ -782,7 +790,7 @@ function renderDialog() {
     ${card.permanent?`<div class="permanent-detail"><span class="permanent-detail-icon">${permanentIcon(card.number)}</span><div><span>Nasbíráno</span><strong>${card.value||0}</strong></div></div>`:""}
     <div class="stage-gallery">${template.stages.map((s,index)=>{
       const direct=current.next.includes(index), cost=direct?upgradeCost(card,index):null, active=index===card.state;
-      return `<article class="stage-card ${active?"current":""} ${!active&&!direct?"unreachable":""}"><span class="stage-label">${active?"Aktuální stav":`Stav ${index+1}`}</span>${renderPreviewCard(card,index)}</article>`;
+      return `<article class="stage-card ${active?"current":""} ${!active&&!direct?"unreachable":""}" data-stage-index="${index}"><span class="stage-label">${active?"Aktuální stav":`Stav ${index+1}`}</span>${renderPreviewCard(card,index,true)}</article>`;
     }).join("")}</div>`;
 }
 
@@ -823,10 +831,10 @@ function renderCardHeader(card,template,current,currentIndex,interactiveId=null)
   return `<div class="card-header"><div class="card-header-row card-header-top"><span class="card-kind">${getKind(card,currentIndex)}</span>${showCardNumbers?`<span class="card-number">(${String(card.number??card.id).padStart(3,"0")})</span>`:""}${stagePips(template,currentIndex,interactiveId)}</div><div class="card-header-row card-header-bottom"><h3>${current.name}</h3>${points?`<strong class="card-points" aria-label="${points} bodů">🏆${points}</strong>`:""}</div></div>`;
 }
 
-function renderPreviewCard(card,stageIndex) {
+function renderPreviewCard(card,stageIndex,showRoutes=false) {
   const template=getTemplate(card), current=template.stages[stageIndex], production=getProduction(card,stageIndex), hasProduction=Object.values(production).some(Boolean);
   const previewCost=current.next.length===1?(template.branchCosts?.[current.next[0]]||current.cost):null;
-  const previewUpgrades=current.next.map(target=>`<span class="upgrade-line"><span>⭐</span><strong>${expandedBundle(template.branchCosts?.[target]||current.cost)}</strong></span>`).join("");
+  const previewUpgrades=current.next.map(target=>`<span class="upgrade-line" ${showRoutes?`data-route-target="${target}" title="Vede na: ${template.stages[target].name}"`:""}><span>⭐</span><strong>${expandedBundle(template.branchCosts?.[target]||current.cost)}</strong>${showRoutes?`<small>→ ${template.stages[target].name}</small>`:""}</span>`).join("");
   return `<article class="game-card preview-card ${current.next.length>1?"multiple-upgrades":""}">
     <img class="card-art-full" src="${current.image}" alt=""><div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,stageIndex)}
@@ -880,11 +888,12 @@ function render() {
   resourceBar.setAttribute("aria-label",producedResources?`Nasbírané suroviny: ${formatBundle(state.resources)}`:"Nasbírané suroviny: žádné");
   resourceBar.classList.toggle("empty",!producedResources);
   renderPermanents();
-  const activeSlots=state.slots.map((id,index)=>({id,index})).filter(item=>item.id!==null);
+  const lastOccupied=state.slots.reduce((last,id,index)=>id===null?last:index,-1);
+  const visibleSlots=lastOccupied<0?[]:state.slots.slice(0,lastOccupied+1).map((id,index)=>({id,index}));
   const playArea=document.querySelector("#play-area");
-  playArea.classList.toggle("two-rows",activeSlots.length>maxColumns);
+  playArea.classList.toggle("two-rows",visibleSlots.length>maxColumns);
   playArea.style.setProperty("--max-columns",maxColumns);
-  playArea.innerHTML=activeSlots.map(({id,index})=>`<div class="card-slot" data-slot="${index}">${renderCard(id)}</div>`).join("");
+  playArea.innerHTML=visibleSlots.map(({id,index})=>id===null?`<div class="card-slot empty-slot" data-slot="${index}" aria-hidden="true"></div>`:`<div class="card-slot" data-slot="${index}">${renderCard(id)}</div>`).join("");
   requestAnimationFrame(updateCardSize);
   document.querySelector("#empty-state").hidden=activeIds().length>0;
   document.querySelector("#advance-button").disabled=state.busy||state.deck.length===0||firstEmptySlot()<0;
@@ -967,6 +976,8 @@ document.addEventListener("dragstart", event => {
 });
 document.addEventListener("pointerover",event=>{const link=event.target.closest?.("[data-show-bandit-link]");if(!link)return;const id=String(link.dataset.showBanditLink);document.querySelectorAll(`[data-bandit-link="${id}"]`).forEach(card=>card.classList.add("linked-highlight"));});
 document.addEventListener("pointerout",event=>{const link=event.target.closest?.("[data-show-bandit-link]");if(!link||link.contains(event.relatedTarget))return;const id=String(link.dataset.showBanditLink);document.querySelectorAll(`[data-bandit-link="${id}"]`).forEach(card=>card.classList.remove("linked-highlight"));});
+document.addEventListener("pointerover",event=>{const route=event.target.closest?.("[data-route-target]");if(!route)return;const gallery=route.closest(".stage-gallery"),target=gallery?.querySelector(`[data-stage-index="${route.dataset.routeTarget}"]`);route.closest(".stage-card")?.classList.add("route-source");target?.classList.add("route-target");});
+document.addEventListener("pointerout",event=>{const route=event.target.closest?.("[data-route-target]");if(!route||route.contains(event.relatedTarget))return;route.closest(".stage-gallery")?.querySelectorAll(".route-source,.route-target").forEach(card=>card.classList.remove("route-source","route-target"));});
 document.addEventListener("dragend", () => {
   document.querySelectorAll(".dragging,.drag-over").forEach(element=>element.classList.remove("dragging","drag-over"));
   draggingId=null;
@@ -994,7 +1005,8 @@ document.addEventListener("drop", event => {
 });
 document.querySelector("#advance-button").addEventListener("click",advance);
 document.querySelector("#pass-button").addEventListener("click",()=>{if(!state.busy)endTurn(false);});
-document.querySelector("#restart-button").addEventListener("click",()=>{closeDialogs();newGame();});
+document.querySelector("#restart-button").addEventListener("click",()=>{closeDialogs();showWelcome();});
+document.querySelector("#start-game-button").addEventListener("click",startFromWelcome);
 document.querySelector("#rules-button").addEventListener("click",()=>{hideSettingsMenu();document.querySelector("#rules-dialog").showModal();});
 document.querySelector("#settings-button").addEventListener("click",event=>{
   const menu=document.querySelector("#settings-menu"),open=menu.hidden;
@@ -1015,5 +1027,5 @@ window.addEventListener("resize",updateCardSize);
 
 document.querySelector("#show-card-numbers").checked=showCardNumbers;
 document.querySelector("#confirm-production").checked=confirmProductionSetting;
-newGame();
+if(!restoreAutosave())showWelcome();
 
