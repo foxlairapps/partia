@@ -465,7 +465,7 @@ function renderActionChoice(){
 function pickResource(key){if(pendingActionChoice?.type==="export"&&pendingActionChoice.config.resources?.includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();return;}if(pendingActionChoice?.type==="decree"&&pendingActionChoice.step==="building"){if(Object.keys(getProduction(getCard(pendingActionChoice.selectedId))).includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(!pendingActionChoice||pendingActionChoice.type!=="resources"||!pendingActionChoice.options.includes(key)||pendingActionChoice.selected.length>=pendingActionChoice.count)return;pendingActionChoice.selected.push(key);renderActionChoice();}
 function selectActionCard(id){if(!pendingActionChoice?.choices?.includes(id))return;pendingActionChoice.selectedId=id;if(["decree","export"].includes(pendingActionChoice.type))pendingActionChoice.selectedResource=null;renderActionChoice();}
 async function confirmActionChoice(){
-  if(!pendingActionChoice||state.busy)return;
+  if(!pendingActionChoice||(state.busy&&!["decree","export"].includes(pendingActionChoice.type)))return;
   const choice=pendingActionChoice;
   if(choice.type==="export"){
     if(!choice.selectedId||(choice.config.resources&&!choice.selectedResource))return;const target=getCard(choice.selectedId);
