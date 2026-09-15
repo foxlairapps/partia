@@ -15,6 +15,7 @@
     <header class="topbar">
       <div class="brand"><span class="brand-mark"><img src="assets/meadow-2.jpg" alt="" /></span><h1>Patria</h1></div>
       <div id="resources" class="resources" aria-label="Suroviny"></div>
+      <div id="permanent-panel" class="permanent-panel" aria-label="Permanentní karty" hidden></div>
       <div class="header-actions" aria-label="Akce tahu">
         <div class="pile-zone draw-pile" id="draw-pile" aria-label="Dobírací balíček"><span class="deck-stack" aria-hidden="true"><b id="deck-count">6</b></span><strong id="deck-label" class="sr-only">6 karet</strong></div>
         <button class="turn-action draw-two" id="advance-button" type="button" aria-label="Dobrat 2 karty"><span aria-hidden="true">＋2</span><strong>Dobrat</strong></button>
@@ -33,6 +34,7 @@
               <button type="button" data-columns="8">8</button>
             </div>
             <label class="settings-toggle"><input id="show-card-numbers" type="checkbox" /> <span>Zobrazovat čísla karet</span></label>
+            <label class="settings-toggle"><input id="confirm-production" type="checkbox" /> <span>Potvrzovat použití produkce</span></label>
           </div>
           <div class="settings-actions">
             <button id="rules-button" type="button"><span aria-hidden="true">?</span> Jak hrát</button>
