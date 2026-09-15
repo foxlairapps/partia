@@ -18,12 +18,9 @@
       <div class="header-actions" aria-label="Akce tahu">
         <div class="pile-zone draw-pile" id="draw-pile" aria-label="Dobírací balíček"><span class="deck-stack" aria-hidden="true"><b id="deck-count">6</b></span><strong id="deck-label" class="sr-only">6 karet</strong></div>
         <button class="turn-action draw-two" id="advance-button" type="button" aria-label="Dobrat 2 karty"><span aria-hidden="true">＋2</span><strong>Dobrat</strong></button>
+        <div class="round-counter" aria-label="Aktuální kolo"><span>Kolo</span><strong id="round-value">1</strong></div>
         <button class="turn-action end-turn" id="pass-button" type="button"><span aria-hidden="true">✓</span><strong>Ukončit tah</strong></button>
         <button class="pile-zone discard-pile" id="discard-pile" type="button" aria-label="Prohlédnout odhazovací balíček"><strong id="discard-label" class="sr-only">0 karet</strong><span class="deck-stack discard-stack" aria-hidden="true"><b id="discard-count">0</b></span></button>
-      </div>
-      <div class="counters" aria-label="Stav hry">
-        <div><span>Kolo</span><strong id="round-value">1</strong></div>
-        <div><span>Tah</span><strong id="turn-value">1</strong></div>
       </div>
       <div class="header-tools">
         <button class="gear-button" id="settings-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="settings-menu"><span aria-hidden="true"></span></button>
@@ -35,6 +32,7 @@
               <button type="button" data-columns="6">6</button>
               <button type="button" data-columns="8">8</button>
             </div>
+            <label class="settings-toggle"><input id="show-card-numbers" type="checkbox" /> <span>Zobrazovat čísla karet</span></label>
           </div>
           <div class="settings-actions">
             <button id="rules-button" type="button"><span aria-hidden="true">?</span> Jak hrát</button>
@@ -53,6 +51,7 @@
   <dialog id="card-dialog" class="card-dialog"><button class="dialog-close" data-close-card aria-label="Zavřít detail">×</button><div id="card-dialog-content"></div></dialog>
   <dialog id="upgrade-dialog" class="upgrade-dialog"><button class="dialog-close" data-close-upgrade aria-label="Zrušit vylepšení">×</button><div id="upgrade-dialog-content"></div></dialog>
   <dialog id="discard-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-choice aria-label="Zrušit volbu">×</button><div id="discard-choice-content"></div></dialog>
+  <dialog id="action-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-action-choice aria-label="Zrušit volbu">×</button><div id="action-choice-content"></div></dialog>
   <dialog id="discard-browser-dialog" class="discard-browser-dialog"><button class="dialog-close" data-close-discard-browser aria-label="Zavřít odhazovací balíček">×</button><div id="discard-browser-content"></div></dialog>
   <dialog id="library-dialog" class="library-dialog"><button class="dialog-close" data-close-library aria-label="Zavřít knihovnu">×</button><div id="library-dialog-content"></div></dialog>
 
