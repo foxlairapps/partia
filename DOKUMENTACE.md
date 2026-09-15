@@ -63,7 +63,7 @@ Uložená hra je zatím lokální pro konkrétní prohlížeč a zařízení. Sy
 - `index.html` – základní struktura aplikace a dialogy.
 - `styles.css` – celý vzhled, rozvržení, škálování a animace.
 - `app.js` – data karet, herní stav, pravidla a obsluha rozhraní.
-- `assets/` – ilustrace jednotlivých stavů karet.
+- `assets/` – ilustrace jednotlivých stavů karet. Herní soubory používají názvy ve formátu `ID + stav`, například `045a.jpg`, `045b.jpg`; písmeno značí index stavu od `a`.
 - `CNAME` – vlastní doména GitHub Pages.
 - `.nojekyll` – vypnutí zpracování Jekyllem.
 - `.github/workflows/pages.yml` – automatické zveřejnění po změně větve `main`.
@@ -83,7 +83,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 
 ## 10. Známá omezení a další směr
 
-- Kampaň je zpracovaná do karty 036. Karta 030 vybírá dva ze čtyř přistěhovalců 031–034; poté pokračují karty 035 a 036. Přímé objevované návaznosti těchto karet jsou evidované v katalogu a nevypadnou ze hry.
+- Kampaň je zpracovaná do karty 046. Karty 037–042 otevírají cíle a trvalé volby panství; karty 043–046 přidávají kamenickou, povětrnostní a vojenskou větev. Kameník má v katalogu i navazující karty 088, 089 a 109–116, takže žádný objev nezmizí bez náhrady.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
 - Před rozšířením obsahu je vhodné oddělit data karet od herního enginu do samostatného datového souboru.

@@ -44,9 +44,11 @@
             <label class="settings-toggle"><input id="confirm-production" type="checkbox" /> <span>Potvrzovat použití produkce</span></label>
           </div>
           <div class="settings-actions">
+            <button id="card-list-button" type="button"><span aria-hidden="true">▦</span> Seznam karet</button>
             <button id="rules-button" type="button"><span aria-hidden="true">?</span> Jak hrát</button>
             <button id="restart-button" type="button"><span aria-hidden="true">↻</span> Nová hra</button>
           </div>
+          <div class="build-number">Build <strong id="build-number"></strong></div>
         </div>
       </div>
     </header>
@@ -63,6 +65,7 @@
   <dialog id="action-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-action-choice aria-label="Zrušit volbu">×</button><div id="action-choice-content"></div></dialog>
   <dialog id="discard-browser-dialog" class="discard-browser-dialog"><button class="dialog-close" data-close-discard-browser aria-label="Zavřít odhazovací balíček">×</button><div id="discard-browser-content"></div></dialog>
   <dialog id="library-dialog" class="library-dialog"><button class="dialog-close" data-close-library aria-label="Zavřít knihovnu">×</button><div id="library-dialog-content"></div></dialog>
+  <dialog id="card-list-dialog" class="card-list-dialog"><button class="dialog-close" data-close-card-list aria-label="Zavřít seznam karet">×</button><div id="card-list-content"></div></dialog>
 
   <dialog id="rules-dialog" class="rules-dialog">
     <button class="dialog-close" data-close-dialog aria-label="Zavřít pravidla">×</button><span class="eyebrow">Základní pravidla</span><h2>Jeden tah, jedno velké rozhodnutí</h2>

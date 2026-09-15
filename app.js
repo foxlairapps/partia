@@ -6,6 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
+const BUILD_NUMBER = "0.12.0";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -177,12 +178,32 @@ const templates = {
   curseChoice:{title:"Podrazák / Krvavá kletba",kind:"Nepřítel",chooseOnDiscover:true,stages:[stage("Podrazák",art("market",2),{},null,-4,"Při vyložení odhoď 2 osoby. Zaplať 4 síly: znič tuto kartu.",[],{action:"defeat-backstabber",onPlay:"discard-persons"}),stage("Krvavá kletba",art("forest",1),{},null,0,"Když dobereš 2 karty, dober další 2.",[],{kind:"Událost"})]},
   royalChoice:{title:"Královská návštěva / Inkvizitor",kind:"Událost",chooseOnDiscover:true,stages:[stage("Královská návštěva",art("manor",4),{},null,2,"Odhoď: trvale sniž jednu cenu vylepšení ve hře o 1 surovinu.",[],{action:"reduce-upgrade"}),stage("Inkvizitor",art("manor",2),{coin:1},null,0,"Znič tuto kartu: znič jednu negativní kartu ve hře.",[],{kind:"Osoba",action:"destroy-negative"})]},
   tradeRelations:{title:"Obchodní vztahy",kind:"Permanentní",stages:[stage("Obchodní vztahy",art("market",4),{},null,0,"Utrať 3 zboží: získej libovolnou 1 surovinu.",[],{action:"trade-relations"})]},
+  ambitionsDecree:{title:"Ambice panství",kind:"Listina",stages:[stage("Ambice panství",art("manor",4),{},null,0,"Zvol cíle panství, Dvorního baviče nebo Kupce a Polního dělníka nebo Sklad.",[])]},
+  populationGoal:{title:"Početní převaha / Vojenská nadvláda",kind:"Permanentní · Cíl",chooseOnDiscover:true,permanent:true,stages:[stage("Početní převaha",art("manor",2),{},null,0,"Na konci hry získáš 2 body za každou osobu.",[]),stage("Vojenská nadvláda",art("manor",3),{},null,0,"Na konci hry získáš 2 body za každou produkovanou sílu.",[])]},
+  expansionGoal:{title:"Rozšiřování hranic / Maximální využití",kind:"Permanentní · Cíl",chooseOnDiscover:true,permanent:true,stages:[stage("Rozšiřování hranic",art("meadow",4),{},null,0,"Cílem je mít 75 nepermanentních karet; za každou chybějící ztratíš 2 body.",[]),stage("Maximální využití",art("market",4),{},null,0,"Na konci hry ztratíš 1 bod za každou nepermanentní kartu bez bodové hodnoty.",[])]},
+  loyaltyGoal:{title:"Věrnost / Obchodník",kind:"Permanentní · Cíl",chooseOnDiscover:true,permanent:true,stages:[stage("Věrnost",art("manor",4),{},null,25,"Získáš 25 bodů, pokud v panství nezůstane žádný nepřítel.",[]),stage("Obchodník",art("market",4),{},null,25,"Získáš 25 bodů, pokud produkce zboží dosáhne alespoň 10.",[])]},
+  courtChoice:{title:"Dvorní bavič / Kupec",kind:"Osoba",chooseOnDiscover:true,stages:[stage("Dvorní bavič",art("market",2),{},null,1,"Odhoď vrchní kartu balíčku, označ další pole a získej jeho odměnu. Zůstává ve hře.",[],{action:"jester",stays:true}),stage("Kupec",art("market",3),{},null,2,"Označ jedno nebo dvě pole a získej odpovídající suroviny.",[],{action:"merchant-marks"})]},
+  workerStorage:{title:"Polní dělník / Sklad",kind:"Osoba",chooseOnDiscover:true,stages:[stage("Polní dělník",art("meadow",3),{},null,0,"Odhoď tuto kartu: získej produkci zvolené krajiny ve hře.",[],{action:"copy-production",targetKind:"Krajina"}),stage("Sklad",art("manor",2),{},null,1,"Na konci tahu může jiná karta zůstat ve hře. Sklad zůstává ve hře.",[],{stays:true,kind:"Budova"})]},
+  mason:{title:"Kameník",kind:"Osoba",stages:[stage("Kameník",art("mountain",2),{stone:1},{coin:2},0,"Zaplať 2 mince a zahaj jeden ze dvou stavebních projektů.",[1,2],{action:"mason-project"}),stage("Cihlová cesta",art("meadow",2),{coin:1},{stone:4},3,"Vyber jeden z projektů 109 nebo 110.",[3],{action:"discover-guild-or-barn",kind:"Budova"}),stage("Kamenná ulice",art("mountain",3),{coin:1},{stone:4},2,"Vyber jeden z projektů 111 nebo 112.",[3],{action:"discover-mint-or-stable",kind:"Budova"}),stage("Mistrovská cesta",art("manor",4),{coin:2},null,7,"Panství propojuje pevná síť cest.",[],{kind:"Budova"})]},
+  weather:{title:"Bouře",kind:"Událost",stages:[stage("Bouře",art("mountain",4),{},null,0,"Při vyložení odhoď tři vrchní karty balíčku a kartu otoč.",[],{onPlay:"storm"}),stage("Déšť",art("meadow",1),{},null,0,"Krajiny produkují navíc 2 mince. Dokud prší, nelze dobírat další karty.",[],{landCoinAura:2})]},
+  darkKnight:{title:"Temný rytíř",kind:"Nepřítel",stages:[stage("Temný rytíř",art("manor",3),{},null,-3,"Dokud je ve hře, nelze dobírat ani vylepšovat. Utrať 3 síly a poraz jej.",[1],{action:"defeat-dark-knight",stays:true}),stage("Nadšený chlapec",art("manor",1),{}, {metal:1,sword:1},0,"Znič tuto kartu a získej 2 síly.",[2],{action:"destroy-for-swords",amount:2,kind:"Osoba"}),stage("Panoš",art("manor",2),{sword:1},null,3,"Znič tuto kartu a získej 3 síly.",[],{action:"destroy-for-swords",amount:3,kind:"Osoba"})]},
+  camp:{title:"Tábor",kind:"Budova",stages:[stage("Tábor",art("meadow",2),{coin:1,wood:1,metal:1},{coin:2,wood:2},0,"",[1]),stage("Cvičiště",art("manor",2),{metal:2},{coin:3,metal:2},1,"Zaplať 1 minci a získej 1 sílu.",[2],{action:"train-soldier"}),stage("Rytířský dvůr",art("manor",4),{sword:2},null,3,"Vyškolení rytíři chrání celé panství.",[])]},
+  stoneMonument:{title:"Kamenný monument",kind:"Permanentní",permanent:true,stages:[stage("Kamenný monument",art("mountain",3),{},null,0,"Vkládej postupně rostoucí množství kamene a získávej body.",[])]},
+  buildingProject:{title:"Stavební projekt",kind:"Budova",stages:[stage("Staveniště",art("manor",1),{}, {wood:2,stone:2},0,"Rozhodni se mezi Městskou studnou a Vězením.",[1,2]),stage("Městská studna",art("meadow",3),{coin:2},null,5,"",[]),stage("Vězení",art("manor",3),{sword:1},null,6,"",[])]},
+  guild:{title:"Cech",kind:"Budova",stages:[stage("Malý cech",art("market",2),{coin:2},{wood:2,stone:2},3,"",[1]),stage("Velká cechovní síň",art("market",4),{coin:2,goods:1},null,9,"",[])]},
+  barnProject:{title:"Velký statek",kind:"Budova",stages:[stage("Stodola",art("meadow",2),{wood:2},{stone:3},2,"",[1]),stage("Velký statek",art("meadow",4),{wood:2,goods:1},null,8,"",[])]},
+  mint:{title:"Mincovna",kind:"Budova",stages:[stage("Nová mincovna",art("market",1),{coin:6},{coin:1},0,"Po produkci se její výnos postupně snižuje.",[1]),stage("Zaběhnutá mincovna",art("market",2),{coin:5},{coin:1},2,"",[2]),stage("Stará mincovna",art("market",3),{coin:4},{coin:2},4,"",[3]),stage("Královská mincovna",art("market",4),{coin:3},null,9,"Přivítej šlechtice 116.",[],{action:"future-discovery",discoverNumber:116,future:"Šlechtic"})]},
+  stable:{title:"Stáj",kind:"Budova",stages:[stage("Stáj",art("meadow",2),{}, {wood:2},1,"Přiveď prvního koně 113.",[1],{action:"future-discovery",discoverNumber:113,future:"Kůň"}),stage("Rozšířená stáj",art("meadow",3),{}, {wood:2,stone:2},3,"Přiveď druhého koně 114.",[2],{action:"future-discovery",discoverNumber:114,future:"Kůň"}),stage("Velká stáj",art("manor",3),{}, {coin:2,metal:1},5,"Přiveď třetího koně 115.",[3],{action:"future-discovery",discoverNumber:115,future:"Kůň"}),stage("Mistrovská stáj",art("manor",4),{coin:2},null,9,"Koně mohou být dále cvičeni a posilováni.",[])]},
+  horseCoin:{title:"Tažný kůň",kind:"Zvíře",stages:[stage("Tažný kůň",art("meadow",2),{coin:2},null,2,"",[])]},
+  horseWood:{title:"Lesní kůň",kind:"Zvíře",stages:[stage("Lesní kůň",art("forest",2),{wood:2},null,2,"",[])]},
+  horseChoice:{title:"Ušlechtilý kůň",kind:"Zvíře",stages:[stage("Ušlechtilý kůň",art("manor",2),{},null,3,"Vyprodukuj minci, dřevo, kámen nebo sílu.",[],{action:"choose-production",options:["coin","wood","stone","sword"]})]},
+  nobleChoice:{title:"Šlechtic",kind:"Osoba",chooseOnDiscover:true,stages:[stage("Lady Elvina",art("manor",4),{coin:2},null,7,"Při vyložení odhoď zvolenou jinou kartu.",[],{stays:true}),stage("Eadric Stínový",art("manor",3),{sword:1},null,8,"Odhoď jinou osobu a získej 3 síly.",[],{stays:true})]},
   vassal:{title:"Pohraniční země",kind:"Nepřítel · Krajina",stages:[stage("Pohraniční země",art("mountain",4),{}, {sword:10},0,"Utrácej sílu a trvale sniž cenu dobytí.",[1]),stage("Okupace",art("mountain",3),{}, {sword:9},0,"Pokračuj v dobývání.",[2],{kind:"Událost"}),stage("Nepoddajná města",art("manor",3),{}, {sword:8},0,"Po vylepšení zapiš 20 bodů na poslední stav.",[3],{kind:"Krajina"}),stage("Vazalské státy",art("meadow",4),{},null,20,"Resetuj kartu a můžeš ji dobývat znovu.",[0],{kind:"Krajina",action:"reset-vassal"})]}
 };
 
 const initialCards = ["meadow","meadow","meadow","meadow","mountain","mountain","forest","forest","headquarters","trader"].map((template,index)=>({number:index+1,template}));
-const discoveryQueue = ["jungle","river","workerChoice","banditWorker","mountain","banditField","church","cliffs","forest","swamp","swamp","lake"].map((template,index)=>({number:index+11,template})).concat([{number:23,template:"legacyNotice"},{number:28,template:"volcano"},{number:29,template:"opportunist"},{number:30,template:"immigrantDecree"},{number:35,template:"mountain"},{number:36,template:"mercenary"}]);
-const catalog={23:"legacyNotice",24:"fertileDecree",25:"army",26:"treasury",27:"exportTrack",28:"volcano",29:"opportunist",31:"entrepreneur",32:"scientist",33:"engineer",34:"inventor",35:"mountain",36:"mercenary",71:"mountain",72:"forest",73:"canyon",74:"shore",75:"shore",76:"pirate",77:"lagoon",82:"shrine",83:"shrine",84:"mine",85:"mine",86:"dubbing",87:"quests",90:"jewelry",91:"ark",92:"stranger",93:"treasure",94:"curseChoice",95:"astronomer",96:"alchemist",97:"printingPress",98:"calendar",99:"workshop",100:"improvedLumber",101:"improvedBarns",102:"improvedFishing",103:"missionary",104:"priest",107:"royalChoice",117:"tradeRelations",118:"school",135:"vassal"};
+const discoveryQueue = ["jungle","river","workerChoice","banditWorker","mountain","banditField","church","cliffs","forest","swamp","swamp","lake"].map((template,index)=>({number:index+11,template})).concat([{number:23,template:"legacyNotice"},{number:28,template:"volcano"},{number:29,template:"opportunist"},{number:30,template:"immigrantDecree"},{number:35,template:"mountain"},{number:36,template:"mercenary"},{number:37,template:"ambitionsDecree"},{number:38,template:"populationGoal"},{number:39,template:"expansionGoal"},{number:40,template:"loyaltyGoal"},{number:41,template:"courtChoice"},{number:42,template:"workerStorage"},{number:43,template:"mason"},{number:44,template:"weather"},{number:45,template:"darkKnight"},{number:46,template:"camp"}]);
+const catalog={23:"legacyNotice",24:"fertileDecree",25:"army",26:"treasury",27:"exportTrack",28:"volcano",29:"opportunist",31:"entrepreneur",32:"scientist",33:"engineer",34:"inventor",35:"mountain",36:"mercenary",37:"ambitionsDecree",38:"populationGoal",39:"expansionGoal",40:"loyaltyGoal",41:"courtChoice",42:"workerStorage",43:"mason",44:"weather",45:"darkKnight",46:"camp",71:"mountain",72:"forest",73:"canyon",74:"shore",75:"shore",76:"pirate",77:"lagoon",82:"shrine",83:"shrine",84:"mine",85:"mine",86:"dubbing",87:"quests",88:"stoneMonument",89:"buildingProject",90:"jewelry",91:"ark",92:"stranger",93:"treasure",94:"curseChoice",95:"astronomer",96:"alchemist",97:"printingPress",98:"calendar",99:"workshop",100:"improvedLumber",101:"improvedBarns",102:"improvedFishing",103:"missionary",104:"priest",107:"royalChoice",109:"guild",110:"barnProject",111:"mint",112:"stable",113:"horseCoin",114:"horseWood",115:"horseChoice",116:"nobleChoice",117:"tradeRelations",118:"school",135:"vassal"};
 const PERMANENT_TRACKS={
   25:{resource:"sword",costs:[1,2,3,4,5,6,7,8,9,10,10,10,12,12,15],rewards:[1,4,7,10,14,19,25,32,40,50,60,70,80,90,100],flipAfter:10},
   26:{resource:"coin",costs:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],rewards:[1,2,3,5,7,10,14,19,25,32,40,50,60,70,80,90,100],flipAfter:12},
@@ -231,6 +252,7 @@ function migrateCampaignQueue(){
   if(![31,32,33,34].some(number=>known.has(number))&&!known.has(30))state.discoveries.push({number:30,template:"immigrantDecree"});
   if(!known.has(35))state.discoveries.push({number:35,template:"mountain"});
   if(!known.has(36))state.discoveries.push({number:36,template:"mercenary"});
+  discoveryQueue.filter(spec=>spec.number>=37&&!known.has(spec.number)).forEach(spec=>state.discoveries.push({...spec}));
 }
 function showWelcome(){document.querySelector("#welcome-screen").hidden=false;hideSettingsMenu();}
 function startFromWelcome(){document.querySelector("#welcome-screen").hidden=true;localStorage.removeItem("patria-autosave");newGame();}
@@ -243,6 +265,7 @@ function shuffle(items) {
 }
 function getCard(id) { return state.cards.find(card => card.id === id) || state.permanents.find(card => card.id === id) || state.specials.find(card => card.id === id); }
 function getTemplate(card) { return templates[card.template]; }
+function cardAsset(card,stageIndex=card.state){return `assets/${String(card.number??card.id).padStart(3,"0")}${String.fromCharCode(97+stageIndex)}.jpg`;}
 function getStage(card) { return getTemplate(card).stages[card.state]; }
 function getKind(card,stageIndex=card.state){const template=getTemplate(card);return template.stages[stageIndex].kind||template.kind;}
 function formatBundle(bundle = {}) { return Object.entries(bundle).filter(([,v])=>v).map(([k,v])=>`${R[k].icon} ${v}`).join("  ") || "—"; }
@@ -251,7 +274,7 @@ function productionIcons(bundle = {}) { return Object.entries(bundle).flatMap(([
 function canAfford(cost = {}) { return Object.entries(cost).every(([k,v]) => state.resources[k] >= v); }
 function spend(cost = {}) { Object.entries(cost).forEach(([k,v]) => state.resources[k] -= v); }
 function gain(bundle = {}) { Object.entries(bundle).forEach(([k,v]) => state.resources[k] += v); }
-function getProduction(card,stageIndex=card.state){const base=getTemplate(card).stages[stageIndex].production||{},bonus=card.productionBonus?.[stageIndex]||{};const merged={...base};Object.entries(bonus).forEach(([key,value])=>merged[key]=(merged[key]||0)+value);const scientist=activeIds().map(getCard).find(other=>other&&getStage(other).personCoinAura);if(scientist&&getKind(card,stageIndex).includes("Osoba")&&slotOf(card.id)>=0)merged.coin=(merged.coin||0)+1;return merged;}
+function getProduction(card,stageIndex=card.state){const base=getTemplate(card).stages[stageIndex].production||{},bonus=card.productionBonus?.[stageIndex]||{};const merged={...base};Object.entries(bonus).forEach(([key,value])=>merged[key]=(merged[key]||0)+value);const active=activeIds().map(getCard);const scientist=active.find(other=>other&&getStage(other).personCoinAura);if(scientist&&getKind(card,stageIndex).includes("Osoba")&&slotOf(card.id)>=0)merged.coin=(merged.coin||0)+1;const rain=active.find(other=>other&&getStage(other).landCoinAura);if(rain&&getKind(card,stageIndex).includes("Krajina")&&slotOf(card.id)>=0)merged.coin=(merged.coin||0)+getStage(rain).landCoinAura;return merged;}
 function addHistory() {}
 function notify(text) { const el=document.querySelector("#toast"); el.textContent=text; el.classList.add("visible"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove("visible"),2200); }
 function activeIds() { return state.slots.filter(id => id !== null); }
@@ -265,7 +288,7 @@ function installPermanent(number) {
 }
 function discoverCard(number) {
   if (!catalog[number] || getCard(number)) return null;
-  if ([25,26,27,87,90,91,117].includes(number)) return installPermanent(number);
+  if ([25,26,27,38,39,40,87,88,90,91,117].includes(number)) {const permanent=installPermanent(number);if(permanent&&!state.permanentIntroQueue.includes(number))state.permanentIntroQueue.push(number);return permanent;}
   const card={id:number,number,template:catalog[number],state:0};
   state.cards.push(card);
   state.discard.push(card.id);
@@ -302,6 +325,7 @@ function drawCards(count, loseResources = true) {
     state.slots[slot]=id;
     drawn.push(id);
   }
+  drawn.forEach(id=>{const card=getCard(id);if(getStage(card)?.onPlay==="storm"){for(let i=0;i<3&&state.deck.length;i++)state.discard.push(state.deck.shift());card.state=1;notify("Bouře odhodila tři vrchní karty. Přichází déšť.");}});
   if(waitingVolcano){
     const lands=drawn.filter(id=>getKind(getCard(id)).includes("Krajina"));
     if(lands.length===1)resolveVolcano(waitingVolcano,lands[0]);
@@ -446,6 +470,22 @@ async function useEffect(id,forcedAction=null) {
     if((card.training||0)>=2){state.busy=false;return notify("Rytíř už získal obě posílení.");}if(!canAfford({metal:3})){state.busy=false;return notify("Chybí 3 kovy.");}
     spend({metal:3});card.training=(card.training||0)+1;card.productionBonus??={};card.productionBonus[1]??={};card.productionBonus[1].sword=(card.productionBonus[1].sword||0)+1;await animateDiscard([id]);discardCard(id);state.busy=false;render();return endTurn(false);
   }
+  if(action==="mason-project"){state.busy=false;return showDiscoveryChoice(id,[88,89],{pay:{coin:2},discard:true});}
+  if(action==="discover-guild-or-barn"){state.busy=false;return showDiscoveryChoice(id,[109,110],{discard:true});}
+  if(action==="discover-mint-or-stable"){state.busy=false;return showDiscoveryChoice(id,[111,112],{discard:true});}
+  if(action==="defeat-dark-knight"){
+    if(!canAfford({sword:3})){state.busy=false;return notify("Chybí 3 síly.");}spend({sword:3});card.state=1;await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
+  }
+  if(action==="destroy-for-swords"){gain({sword:current.amount||2});destroyCard(id);state.busy=false;render();return;}
+  if(action==="train-soldier"){
+    if(!canAfford({coin:1})){state.busy=false;return notify("Chybí 1 mince.");}spend({coin:1});gain({sword:1});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
+  }
+  if(action==="jester"){
+    if(state.deck.length)state.discard.push(state.deck.shift());card.marks=(card.marks||0)+1;gain(card.marks%3===0?{goods:1}:card.marks%2===0?{wood:1}:{coin:1});state.busy=false;render();return;
+  }
+  if(action==="merchant-marks"){
+    card.marks=(card.marks||0)+1;const rewards=["coin","wood","stone","metal"];gain({[rewards[(card.marks-1)%rewards.length]]:1});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
+  }
   state.busy=false;
   notify("Tento efekt bude doplněn v další části prototypu.");
 }
@@ -516,7 +556,7 @@ function queueBanditBlocks(drawnIds){
 function renderActionChoice(){
   if(!pendingActionChoice)return;
   if(pendingActionChoice.type==="permanent-intro"){
-    const descriptions={25:["Armáda","Postupně do ní vkládáš sílu. Každý další stupeň vyžaduje větší sadu a vložení ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],26:["Pokladnice","Postupně do ní ukládáš mince. Vždy je nutné vložit celou následující sadu a akce ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],27:["Export","Zboží můžeš do Exportu vložit ze své zásoby; tah tím nekončí.","Po dosažení vyznačených hranic si mezi koly vybereš nebo uplatníš novou odměnu."]},copy=descriptions[pendingActionChoice.number];
+    const descriptions={25:["Armáda","Postupně do ní vkládáš sílu. Každý další stupeň vyžaduje větší sadu a vložení ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],26:["Pokladnice","Postupně do ní ukládáš mince. Vždy je nutné vložit celou následující sadu a akce ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],27:["Export","Zboží můžeš do Exportu vložit ze své zásoby; tah tím nekončí.","Po dosažení vyznačených hranic si mezi koly vybereš nebo uplatníš novou odměnu."],38:["Nový cíl panství","Zvol Početní převahu, nebo Vojenskou nadvládu. Vybraná strana určuje závěrečné bodování.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],39:["Nový cíl panství","Zvol Rozšiřování hranic, nebo Maximální využití. Cíl mění závěrečné bodování celého balíčku.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],40:["Nový cíl panství","Zvol Věrnost, nebo Obchodníka. Za splnění podmínky získáš na konci hry 25 bodů.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],88:["Kamenný monument","Do monumentu vkládáš stále větší sady kamene a postupně získáváš body.","Vložení je velká akce a ukončí tah."]},copy=descriptions[pendingActionChoice.number]||[getStage(getCard(pendingActionChoice.number)).name,"Tato karta zůstává v panství natrvalo a přináší dlouhodobou schopnost.","Podrobnosti najdeš po jejím rozkliknutí."];
     openActionChoice(`<div class="dialog-header permanent-intro"><span class="permanent-intro-icon">${permanentIcon(pendingActionChoice.number)}</span><span class="eyebrow">Nový permanent</span><h2>${copy[0]}</h2><p>${copy[1]}</p><p>${copy[2]}</p></div><div class="upgrade-confirm-bar"><button class="upgrade-action" data-confirm-action-choice type="button">${state.permanentIntroQueue.length>1?"Další":"Rozumím"}</button></div>`);
   } else if(pendingActionChoice.type==="side-choice"){
     const choice=pendingActionChoice,card=getCard(choice.cardId);
@@ -601,9 +641,9 @@ async function confirmActionChoice(){
     return;
   }
   if(choice.type==="discover") {
-    discoverCard(choice.selectedId);if(choice.after?.resetState!==undefined)source.state=choice.after.resetState;
+    if(choice.after?.pay)spend(choice.after.pay);const discovered=discoverCard(choice.selectedId);if(choice.after?.resetState!==undefined)source.state=choice.after.resetState;
     await animateDiscard([source.id]);if(choice.after?.destroy)destroyCard(source.id);else if(choice.after?.discard)discardCard(source.id);
-    state.busy=false;render();notify(`Karta ${String(choice.selectedId).padStart(3,"0")} byla objevena.`);return;
+    state.busy=false;render();notify(`Karta ${String(choice.selectedId).padStart(3,"0")} byla objevena.`);if(discovered&&getTemplate(discovered).chooseOnDiscover)showSideChoice(discovered);else if(discovered?.permanent&&state.permanentIntroQueue.length)showPermanentIntro();return;
   }
   if(choice.after?.pay)spend(choice.after.pay);
   if(choice.type==="resources")choice.selected.forEach(key=>gain({[key]:1}));
@@ -658,7 +698,7 @@ function upgradeCost(card, target) {
 }
 
 async function upgrade(id, target) {
-  if (state.busy || state.inactive.has(id)) return;
+  if (state.busy || state.inactive.has(id) || activeIds().some(otherId=>getCard(otherId)?.template==="darkKnight"&&getCard(otherId).state===0)) return notify("Temný rytíř brání vylepšování.");
   const card=getCard(id), current=getStage(card);
   if (slotOf(id) < 0 || !current.next.includes(target)) return;
   const cost=upgradeCost(card,target);
@@ -741,7 +781,12 @@ function prepareNextRound() {
       state.immigrantChoices=[];state.specials=state.specials.filter(card=>![31,32,33,34].includes(card.number));
       [31,32,33,34].forEach(number=>state.specials.push({id:number,number,template:catalog[number],state:0,candidate:true}));
       roundTransitionContext.immigrantMode=true;break;
-    } else { const card={id:spec.number,number:spec.number,template:spec.template,state:0};state.cards.push(card); found.push(card); }
+    } else if(spec.number===37){
+      state.discoveries=state.discoveries.filter(item=>item.number<38||item.number>42);
+      [38,39,40,41,42].forEach(number=>{let card;if(templates[catalog[number]].permanent){card=installPermanent(number);if(card)state.permanentIntroQueue.push(number);}else{card={id:number,number,template:catalog[number],state:0};state.cards.push(card);}if(card)found.push(card);});
+      break;
+    } else if(templates[spec.template]?.permanent){const card=installPermanent(spec.number);if(card){found.push(card);state.permanentIntroQueue.push(spec.number);}}
+    else { const card={id:spec.number,number:spec.number,template:spec.template,state:0};state.cards.push(card); found.push(card); }
   }
   roundTransitionContext.newCards=found;
   roundTransitionContext.phase="discovery";
@@ -805,8 +850,18 @@ function showLibrary() {
   if (!dialog.open) dialog.showModal();
 }
 
+function implementedCardSpecs(){
+  const specs=new Map();initialCards.forEach(spec=>specs.set(spec.number,spec.template));discoveryQueue.forEach(spec=>{if(templates[spec.template])specs.set(spec.number,spec.template);});Object.entries(catalog).forEach(([number,template])=>specs.set(Number(number),template));return [...specs].sort((a,b)=>a[0]-b[0]);
+}
+function showCardList(){
+  hideSettingsMenu();
+  document.querySelector("#card-list-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Implementovaný obsah</span><h2>Seznam karet</h2><p>Všechny dostupné karty jsou seřazené podle interního čísla. Na jednom řádku vidíš všechny jejich stavy.</p></div><div class="card-list-rows">${implementedCardSpecs().map(([number,template])=>{const card={id:number,number,template,state:0};return `<section class="card-list-row"><strong class="card-list-number">${String(number).padStart(3,"0")}</strong><div class="card-list-states">${templates[template].stages.map((_,index)=>renderPreviewCard(card,index,true)).join("")}</div></section>`;}).join("")}</div>`;
+  const dialog=document.querySelector("#card-list-dialog");if(!dialog.open)dialog.showModal();
+}
+
 function advance() {
   if (state.busy || !state.deck.length) return;
+  if(activeIds().some(id=>{const card=getCard(id);return card.template==="darkKnight"&&card.state===0||getStage(card).landCoinAura;}))return notify("Tato karta nyní brání dalšímu dobírání.");
   const room=state.slots.filter(id=>id===null).length;
   if (!room) return notify("Na herní ploše už není volná pozice.");
   const drawn=drawCards(Math.min(2,state.deck.length,room), false);
@@ -964,7 +1019,7 @@ function renderPreviewCard(card,stageIndex,showRoutes=false) {
   const previewCost=current.next.length===1?(template.branchCosts?.[current.next[0]]||current.cost):null;
   const previewUpgrades=current.next.map(target=>`<span class="upgrade-line" ${showRoutes?`data-route-target="${target}" title="Vede na: ${template.stages[target].name}"`:""}><span>⭐</span><strong>${expandedBundle(template.branchCosts?.[target]||current.cost)}</strong>${showRoutes?`<small>→ ${template.stages[target].name}</small>`:""}</span>`).join("");
   return `<article class="game-card preview-card ${current.next.length>1?"multiple-upgrades":""}">
-    <img class="card-art-full" src="${current.image}" alt=""><div class="card-shade" aria-hidden="true"></div>
+    <img class="card-art-full" src="${cardAsset(card,stageIndex)}" alt=""><div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,stageIndex)}
     ${hasProduction?`<div class="production-space static-production">${productionIcons(production)}</div>`:""}
     ${ruleVisible(card.template,stageIndex)?`<div class="effect-panel">⚡ ${current.effect}</div>`:""}
@@ -985,7 +1040,7 @@ function renderCard(id) {
   const isBandit=(card.template==="banditWorker"||card.template==="banditField")&&card.state===0;
   const missionaryReady=activeIds().some(otherId=>getCard(otherId).template==="missionary"&&getCard(otherId).state===0)&&canAfford({coin:3});
   return `<article class="game-card ${next.length>1?"multiple-upgrades":""} ${state.blocked[id]?"bandit-blocked":""} ${linkId&&linkId===selectedBanditLink?"linked-highlight":""}" data-card="${id}" ${linkId?`data-bandit-link="${linkId}"`:""} draggable="true" aria-label="${current.name}">
-    <img class="card-art card-art-full" src="${current.image}" alt="" />
+    <img class="card-art card-art-full" src="${cardAsset(card,card.state)}" alt="" />
     <div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,card.state,id)}
     ${state.blocked[id]?`<button class="bandit-mark" data-show-bandit-link="${state.blocked[id]}" type="button" aria-label="Tuto kartu blokuje Bandita">🔗 <span>Blokováno</span></button>`:""}
@@ -1079,6 +1134,7 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-confirm-action-choice")) confirmActionChoice();
     if (button.hasAttribute("data-save-game")) saveGame();
     if (button.hasAttribute("data-open-library")) showLibrary();
+    if (button.hasAttribute("data-close-card-list")) document.querySelector("#card-list-dialog").close();
     if (button.dataset.exportReward) claimExportReward(Number(button.dataset.exportReward));
     if (button.hasAttribute("data-prepare-round")) prepareNextRound();
     if (button.hasAttribute("data-shuffle-round")) shuffleAndStartRound();
@@ -1140,6 +1196,7 @@ document.querySelector("#pass-button").addEventListener("click",()=>{if(!state.b
 document.querySelector("#restart-button").addEventListener("click",()=>{closeDialogs();showWelcome();});
 document.querySelector("#start-game-button").addEventListener("click",startFromWelcome);
 document.querySelector("#rules-button").addEventListener("click",()=>{hideSettingsMenu();document.querySelector("#rules-dialog").showModal();});
+document.querySelector("#card-list-button").addEventListener("click",showCardList);
 document.querySelector("#settings-button").addEventListener("click",event=>{
   const menu=document.querySelector("#settings-menu"),open=menu.hidden;
   menu.hidden=!open;
@@ -1159,5 +1216,6 @@ window.addEventListener("resize",updateCardSize);
 
 document.querySelector("#show-card-numbers").checked=showCardNumbers;
 document.querySelector("#confirm-production").checked=confirmProductionSetting;
+document.querySelector("#build-number").textContent=BUILD_NUMBER;
 if(!restoreAutosave())showWelcome();
 
