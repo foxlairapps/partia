@@ -17,7 +17,7 @@ const templates = {
       stage("Divoká tráva", art("meadow",1), {coin:1}, {coin:2}, 0, "", [1]),
       stage("Pláň", art("meadow",2), {coin:1}, {coin:3}, 0, "Odhoď tuto a jednu další přátelskou kartu: získej 2 mince.", [2], {action:"sacrifice-coin"}),
       stage("Obdělaná pole", art("meadow",3), {coin:2}, {wood:3}, 0, "", [3]),
-      stage("Sýpky", art("meadow",4), {coin:2}, null, 3, "Zůstává ve hře.", [], {stays:true}),
+      stage("Sýpky", art("meadow",4), {coin:2}, null, 3, "Zůstává ve hře.", [], {stays:true,kind:"Budova"}),
     ]
   },
   mountain: {
@@ -34,8 +34,8 @@ const templates = {
     stages: [
       stage("Les", art("forest",1), {wood:1}, null, 0, "Vykácej les: získej 3 dřeva a změň jej na Vykácený les.", [3], {action:"fell-forest"}),
       stage("Vykácený les", art("forest",2), {}, {coin:2,wood:1}, 0, "", [2]),
-      stage("Dřevorubecká osada", art("forest",4), {wood:2}, null, 2, "", []),
-      stage("Posvátná studna", art("forest",3), {coin:1}, null, 2, "Znič tuto kartu: objev Svatyni 082 nebo 083.", [], {action:"discover-shrine"}),
+      stage("Dřevorubecká osada", art("forest",4), {wood:2}, null, 2, "", [], {kind:"Budova"}),
+      stage("Posvátná studna", art("forest",3), {coin:1}, null, 2, "Znič tuto kartu: objev Svatyni 082 nebo 083.", [], {action:"discover-shrine",kind:"Budova"}),
     ],
     branchCosts: { 3: {stone:2} }
   },
@@ -52,9 +52,9 @@ const templates = {
     title: "Obchodník", kind: "Osoba",
     stages: [
       stage("Obchodník", art("market",1), {}, {coin:3}, 0, "Zaplať 1 minci a odhoď tuto kartu: získej 1 dřevo.", [1], {action:"trade", options:["wood"]}),
-      stage("Bazar", art("market",2), {}, {coin:3}, 1, "Zaplať 1 minci: získej 1 dřevo nebo 1 kámen.", [2], {action:"trade", options:["wood","stone"]}),
-      stage("Tržiště", art("market",3), {}, {coin:5}, 3, "Zaplať 1 minci: získej 1 dřevo, kámen nebo kov.", [3], {action:"trade", options:["wood","stone","metal"]}),
-      stage("Slavnost", art("market",4), {}, null, 4, "Vyprodukuj 1 minci, dřevo, kámen nebo kov.", [], {action:"choose-production", options:["coin","wood","stone","metal"]}),
+      stage("Bazar", art("market",2), {}, {coin:3}, 1, "Zaplať 1 minci: získej 1 dřevo nebo 1 kámen.", [2], {action:"trade", options:["wood","stone"],kind:"Budova"}),
+      stage("Tržiště", art("market",3), {}, {coin:5}, 3, "Zaplať 1 minci: získej 1 dřevo, kámen nebo kov.", [3], {action:"trade", options:["wood","stone","metal"],kind:"Budova"}),
+      stage("Slavnost", art("market",4), {}, null, 4, "Vyprodukuj 1 minci, dřevo, kámen nebo kov.", [], {action:"choose-production", options:["coin","wood","stone","metal"],kind:"Událost"}),
     ]
   },
   jungle: {
@@ -63,7 +63,7 @@ const templates = {
       stage("Džungle", art("forest",1), {}, {coin:3}, 0, "Zaplať 1 minci: získej 1 dřevo.", [1], {action:"jungle-wood", amount:1}),
       stage("Obří stromy", art("forest",2), {wood:1}, {coin:3}, 0, "Zaplať 1 minci: získej 2 dřeva.", [2], {action:"jungle-wood", amount:2}),
       stage("Hluboká džungle", art("forest",3), {wood:2}, {coin:2,wood:2}, 0, "", [3]),
-      stage("Domy v korunách", art("forest",4), {coin:1,wood:2}, null, 4, "Zůstává ve hře.", [], {stays:true}),
+      stage("Domy v korunách", art("forest",4), {coin:1,wood:2}, null, 4, "Zůstává ve hře.", [], {stays:true,kind:"Budova"}),
     ]
   },
   river: {
@@ -72,7 +72,7 @@ const templates = {
       stage("Řeka", art("meadow",1), {coin:1}, {wood:3}, 0, "", [1]),
       stage("Most", art("meadow",2), {coin:1}, {stone:3}, 2, "", [2]),
       stage("Kamenný most", art("meadow",3), {coin:1}, {coin:2}, 4, "", [3]),
-      stage("Průzkumníci", art("meadow",4), {coin:1}, null, 4, "Odhoď a vrať kartu na stav Řeka: objev Pobřeží 071–074.", [], {action:"discover-shore-reset"}),
+      stage("Průzkumníci", art("meadow",4), {coin:1}, null, 4, "Odhoď a vrať kartu na stav Řeka: objev Pobřeží 071–074.", [], {action:"discover-shore-reset",kind:"Osoba"}),
     ]
   },
   workerChoice: {
@@ -84,28 +84,28 @@ const templates = {
   },
   banditWorker: {
     title:"Bandita", kind:"Nepřítel",
-    stages:[stage("Bandita",art("market",2),{},null,-2,"Při vyložení blokuje přátelskou kartu produkující mince. Zaplať 1 sílu: znič Banditu a získej libovolné 2 suroviny.",[],{action:"defeat-bandit",onPlay:"block-coin"}),stage("Dělník",art("manor",2),{},null,0,"Odhoď tuto kartu: získej produkci zvolené budovy ve hře.",[],{action:"copy-production",targetKind:"Budova"})]
+    stages:[stage("Bandita",art("market",2),{},null,-2,"Při vyložení blokuje přátelskou kartu produkující mince. Zaplať 1 sílu: znič Banditu a získej libovolné 2 suroviny.",[],{action:"defeat-bandit",onPlay:"block-coin"}),stage("Dělník",art("manor",2),{},null,0,"Odhoď tuto kartu: získej produkci zvolené budovy ve hře.",[],{action:"copy-production",targetKind:"Budova",kind:"Osoba"})]
   },
   banditField: {
     title:"Bandita", kind:"Nepřítel",
-    stages:[stage("Bandita",art("market",2),{},null,-2,"Při vyložení blokuje přátelskou kartu produkující mince. Zaplať 1 sílu: znič Banditu a získej libovolné 2 suroviny.",[],{action:"defeat-bandit",onPlay:"block-coin"}),stage("Polní dělník",art("meadow",3),{},null,0,"Odhoď tuto kartu: získej produkci zvolené krajiny ve hře.",[],{action:"copy-production",targetKind:"Krajina"})]
+    stages:[stage("Bandita",art("market",2),{},null,-2,"Při vyložení blokuje přátelskou kartu produkující mince. Zaplať 1 sílu: znič Banditu a získej libovolné 2 suroviny.",[],{action:"defeat-bandit",onPlay:"block-coin"}),stage("Polní dělník",art("meadow",3),{},null,0,"Odhoď tuto kartu: získej produkci zvolené krajiny ve hře.",[],{action:"copy-production",targetKind:"Krajina",kind:"Osoba"})]
   },
   church: {
     title:"Kopec", kind:"Krajina",
     stages:[
       stage("Kopec",art("mountain",1),{coin:1},{coin:1,wood:1,stone:1},0,"",[1]),
-      stage("Kaple",art("manor",1),{coin:1},{wood:2,stone:2},1,"Odhoď tuto kartu a zaplať 3 mince: objev Misionáře 103.",[2],{action:"future-discovery",pay:{coin:3},future:"Misionář 103"}),
-      stage("Kostel",art("manor",3),{coin:1},{wood:2,metal:1,stone:4},3,"Odhoď tuto kartu a zaplať 4 mince: objev Kněze 104.",[3],{action:"future-discovery",pay:{coin:4},future:"Kněz 104"}),
-      stage("Katedrála",art("manor",4),{coin:1},null,7,"Navíc produkuje 1 minci za každou osobu ve hře. Zůstává ve hře.",[],{stays:true,productionPerPerson:true})
+      stage("Kaple",art("manor",1),{coin:1},{wood:2,stone:2},1,"Odhoď tuto kartu a zaplať 3 mince: objev Misionáře 103.",[2],{action:"future-discovery",pay:{coin:3},future:"Misionář 103",kind:"Budova"}),
+      stage("Kostel",art("manor",3),{coin:1},{wood:2,metal:1,stone:4},3,"Odhoď tuto kartu a zaplať 4 mince: objev Kněze 104.",[3],{action:"future-discovery",pay:{coin:4},future:"Kněz 104",kind:"Budova"}),
+      stage("Katedrála",art("manor",4),{coin:1},null,7,"Navíc produkuje 1 minci za každou osobu ve hře. Zůstává ve hře.",[],{stays:true,productionPerPerson:true,kind:"Budova"})
     ]
   },
   cliffs: {
     title:"Východní útesy",kind:"Krajina",
     stages:[
       stage("Východní útesy",art("mountain",1),{stone:1},null,0,"",[1,3]),
-      stage("Kovárna",art("mountain",4),{metal:1},{coin:2,metal:2},1,"Vrať kartu na Východní útesy a objev Šperk 090.",[2],{action:"reset-discover",future:"Šperk 090"}),
-      stage("Arzenál",art("manor",3),{metal:1},null,4,"Odhoď tuto kartu: získej 1 sílu za každou osobu ve hře.",[],{action:"strength-per-person"}),
-      stage("Hradba",art("mountain",3),{sword:1},null,3,"Zůstává ve hře.",[],{stays:true})
+      stage("Kovárna",art("mountain",4),{metal:1},{coin:2,metal:2},1,"Vrať kartu na Východní útesy a objev Šperk 090.",[2],{action:"reset-discover",future:"Šperk 090",kind:"Budova"}),
+      stage("Arzenál",art("manor",3),{metal:1},null,4,"Odhoď tuto kartu: získej 1 sílu za každou osobu ve hře.",[],{action:"strength-per-person",kind:"Budova"}),
+      stage("Hradba",art("mountain",3),{sword:1},null,3,"Zůstává ve hře.",[],{stays:true,kind:"Budova"})
     ], branchCosts:{1:{stone:1,wood:1,metal:2},3:{stone:3}}
   },
   swamp: {
@@ -116,9 +116,9 @@ const templates = {
     title:"Jezero",kind:"Krajina",
     stages:[
       stage("Jezero",art("meadow",1),{coin:1},null,0,"",[1,3]),
-      stage("Rybářská chata",art("manor",1),{coin:1},{wood:3},1,"",[2]),
-      stage("Rybářská loď",art("meadow",4),{coin:2},null,1,"Objev Pobřeží 075.",[],{action:"future-discovery",future:"Pobřeží 075"}),
-      stage("Maják",art("manor",4),{},null,5,"Dokud je ve hře, můžeš odhazovat vrchní kartu dobíracího balíčku. Zůstává ve hře.",[],{action:"discard-top",stays:true})
+      stage("Rybářská chata",art("manor",1),{coin:1},{wood:3},1,"",[2],{kind:"Budova"}),
+      stage("Rybářská loď",art("meadow",4),{coin:2},null,1,"Objev Pobřeží 075.",[],{action:"future-discovery",future:"Pobřeží 075",kind:"Námořní"}),
+      stage("Maják",art("manor",4),{},null,5,"Dokud je ve hře, můžeš odhazovat vrchní kartu dobíracího balíčku. Zůstává ve hře.",[],{action:"discard-top",stays:true,kind:"Budova"})
     ], branchCosts:{1:{stone:2,wood:1},3:{stone:4}}
   }
 };
@@ -160,6 +160,7 @@ function shuffle(items) {
 function getCard(id) { return state.cards.find(card => card.id === id); }
 function getTemplate(card) { return templates[card.template]; }
 function getStage(card) { return getTemplate(card).stages[card.state]; }
+function getKind(card,stageIndex=card.state){const template=getTemplate(card);return template.stages[stageIndex].kind||template.kind;}
 function formatBundle(bundle = {}) { return Object.entries(bundle).filter(([,v])=>v).map(([k,v])=>`${R[k].icon} ${v}`).join("  ") || "—"; }
 function expandedBundle(bundle = {}) { return Object.entries(bundle).flatMap(([key,value])=>Array.from({length:value},()=>R[key].icon)).join("") || "—"; }
 function productionIcons(bundle = {}) { return Object.entries(bundle).flatMap(([key,value])=>Array.from({length:value},()=>`<span class="production-item" aria-hidden="true">${R[key].icon}</span>`)).join(""); }
@@ -226,7 +227,7 @@ async function produce(id) {
   if (state.busy || slotOf(id) < 0 || state.blocked[id] || !Object.values(current.production).some(Boolean)) return;
   state.busy=true;
   const production={...current.production};
-  if(current.productionPerPerson) production.coin=(production.coin||0)+activeIds().filter(otherId=>otherId!==id&&getTemplate(getCard(otherId)).kind==="Osoba").length;
+  if(current.productionPerPerson) production.coin=(production.coin||0)+activeIds().filter(otherId=>otherId!==id&&getKind(getCard(otherId))==="Osoba").length;
   gain(production);
   await animateDiscard([id]);
   discardCard(id);
@@ -247,7 +248,7 @@ async function useEffect(id) {
   }
   if (current.action === "retrieve") {
     const eligible=[...state.discard].reverse().filter(otherId=>{
-      const other=getCard(otherId), kind=getTemplate(other).kind;
+      const other=getCard(otherId), kind=getKind(other);
       return current.retrieveKinds===null || current.retrieveKinds.includes(kind);
     });
     if (!eligible.length) return notify("V odhazovacím balíčku není vhodná karta.");
@@ -273,7 +274,7 @@ async function useEffect(id) {
     state.busy=false;return showResourceChoice(id,Object.keys(R),2,{pay:{sword:1},destroy:true});
   }
   if(current.action==="strength-per-person") {
-    gain({sword:activeIds().filter(otherId=>otherId!==id&&getTemplate(getCard(otherId)).kind==="Osoba").length});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
+    gain({sword:activeIds().filter(otherId=>otherId!==id&&getKind(getCard(otherId))==="Osoba").length});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
   }
   if(current.action==="discard-top") {
     if(!state.deck.length){state.busy=false;return notify("Dobírací balíček je prázdný.");}
@@ -329,7 +330,7 @@ function showResourceChoice(sourceId,options,count,after={}){
   renderActionChoice();
 }
 function showCardTargetChoice(sourceId,targetKind){
-  const choices=activeIds().filter(id=>id!==sourceId&&getTemplate(getCard(id)).kind===targetKind&&Object.values(getStage(getCard(id)).production).some(Boolean));
+  const choices=activeIds().filter(id=>id!==sourceId&&getKind(getCard(id))===targetKind&&Object.values(getStage(getCard(id)).production).some(Boolean));
   if(!choices.length)return notify(`Ve hře není vhodná karta typu ${targetKind.toLowerCase()}.`);
   pendingActionChoice={type:"card",sourceId,choices,selectedId:choices[0]};renderActionChoice();
 }
@@ -639,7 +640,7 @@ function renderDialog() {
   const card=getCard(state.selectedCard); if(!card) return;
   const template=getTemplate(card), current=getStage(card);
   document.querySelector("#card-dialog-content").innerHTML = `
-    <div class="dialog-header"><span class="eyebrow">${template.kind}</span><h2>${template.title}</h2><p>Aktuálně: ${current.name}. Všechny stavy můžeš bezpečně prohlížet.</p></div>
+    <div class="dialog-header"><span class="eyebrow">${getKind(card)}</span><h2>${template.title}</h2><p>Aktuálně: ${current.name}. Všechny stavy můžeš bezpečně prohlížet.</p></div>
     <div class="stage-gallery">${template.stages.map((s,index)=>{
       const direct=current.next.includes(index), cost=direct?upgradeCost(card,index):null, active=index===card.state;
       return `<article class="stage-card ${active?"current":""} ${!active&&!direct?"unreachable":""}"><span class="stage-label">${active?"Aktuální stav":`Stav ${index+1}`}</span>${renderPreviewCard(card,index)}${direct?`<button class="upgrade-action" data-upgrade-preview="${card.id}" data-target="${index}" ${canAfford(cost)?"":"disabled"}>Vylepšit · ${expandedBundle(cost)}</button>`:""}</article>`;
@@ -660,7 +661,7 @@ function stagePips(template,currentIndex,interactiveId=null) {
 }
 
 function renderCardHeader(card,template,current,currentIndex,interactiveId=null) {
-  return `<div class="card-header"><div class="card-header-row card-header-top"><span class="card-kind">${template.kind}</span>${showCardNumbers?`<span class="card-number">(${String(card.number??card.id).padStart(3,"0")})</span>`:""}${stagePips(template,currentIndex,interactiveId)}</div><div class="card-header-row card-header-bottom"><h3>${current.name}</h3>${current.fame?`<strong class="card-points" aria-label="${current.fame} bodů">🏆${current.fame}</strong>`:""}</div></div>`;
+  return `<div class="card-header"><div class="card-header-row card-header-top"><span class="card-kind">${getKind(card,currentIndex)}</span>${showCardNumbers?`<span class="card-number">(${String(card.number??card.id).padStart(3,"0")})</span>`:""}${stagePips(template,currentIndex,interactiveId)}</div><div class="card-header-row card-header-bottom"><h3>${current.name}</h3>${current.fame?`<strong class="card-points" aria-label="${current.fame} bodů">🏆${current.fame}</strong>`:""}</div></div>`;
 }
 
 function renderPreviewCard(card,stageIndex) {
