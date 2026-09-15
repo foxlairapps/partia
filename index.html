@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#17130f" />
+  <meta name="description" content="Hratelný prototyp karetní hry o budování panství." />
+  <title>Patria — karetní prototyp</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317130f'/%3E%3Cpath d='M6 11l5 4 5-8 5 8 5-4-2 13H8L6 11z' fill='%23d7aa54'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <main class="game-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark"><img src="assets/meadow-2.jpg" alt="" /></span><h1>Patria</h1></div>
+      <div id="resources" class="resources" aria-label="Suroviny"></div>
+      <div class="header-actions" aria-label="Akce tahu">
+        <div class="pile-zone draw-pile" id="draw-pile" aria-label="Dobírací balíček"><span class="deck-stack" aria-hidden="true"><b id="deck-count">6</b></span><strong id="deck-label" class="sr-only">6 karet</strong></div>
+        <button class="turn-action draw-two" id="advance-button" type="button" aria-label="Dobrat 2 karty"><span aria-hidden="true">＋2</span><strong>Dobrat</strong></button>
+        <button class="turn-action end-turn" id="pass-button" type="button"><span aria-hidden="true">✓</span><strong>Ukončit tah</strong></button>
+        <button class="pile-zone discard-pile" id="discard-pile" type="button" aria-label="Prohlédnout odhazovací balíček"><strong id="discard-label" class="sr-only">0 karet</strong><span class="deck-stack discard-stack" aria-hidden="true"><b id="discard-count">0</b></span></button>
+      </div>
+      <div class="counters" aria-label="Stav hry">
+        <div><span>Kolo</span><strong id="round-value">1</strong></div>
+        <div><span>Tah</span><strong id="turn-value">1</strong></div>
+      </div>
+      <div class="header-tools">
+        <button class="gear-button" id="settings-button" type="button" aria-label="Menu" aria-expanded="false" aria-controls="settings-menu"><span aria-hidden="true"></span></button>
+        <div id="settings-menu" class="settings-popover" hidden>
+          <div class="settings-section">
+            <span class="settings-label">Karet v řádku</span>
+            <div class="column-options" role="group" aria-label="Počet karet v řádku">
+              <button type="button" data-columns="4">4</button>
+              <button type="button" data-columns="6">6</button>
+              <button type="button" data-columns="8">8</button>
+            </div>
+          </div>
+          <div class="settings-actions">
+            <button id="rules-button" type="button"><span aria-hidden="true">?</span> Jak hrát</button>
+            <button id="restart-button" type="button"><span aria-hidden="true">↻</span> Nová hra</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="table-area">
+      <div class="board-scroll"><div id="play-area" class="card-grid" aria-live="polite"></div></div>
+      <div id="empty-state" class="empty-state" hidden><span>V aktivní zóně nejsou žádné karty.</span></div>
+    </section>
+  </main>
+
+  <dialog id="card-dialog" class="card-dialog"><button class="dialog-close" data-close-card aria-label="Zavřít detail">×</button><div id="card-dialog-content"></div></dialog>
+  <dialog id="upgrade-dialog" class="upgrade-dialog"><button class="dialog-close" data-close-upgrade aria-label="Zrušit vylepšení">×</button><div id="upgrade-dialog-content"></div></dialog>
+  <dialog id="discard-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-choice aria-label="Zrušit volbu">×</button><div id="discard-choice-content"></div></dialog>
+  <dialog id="discard-browser-dialog" class="discard-browser-dialog"><button class="dialog-close" data-close-discard-browser aria-label="Zavřít odhazovací balíček">×</button><div id="discard-browser-content"></div></dialog>
+  <dialog id="library-dialog" class="library-dialog"><button class="dialog-close" data-close-library aria-label="Zavřít knihovnu">×</button><div id="library-dialog-content"></div></dialog>
+
+  <dialog id="rules-dialog" class="rules-dialog">
+    <button class="dialog-close" data-close-dialog aria-label="Zavřít pravidla">×</button><span class="eyebrow">Základní pravidla</span><h2>Jeden tah, jedno velké rozhodnutí</h2>
+    <ol><li>Na začátku tahu vyložíš až čtyři karty.</li><li>Produkce přidá suroviny a kartu odhodí. Tah pokračuje dál.</li><li>Můžeš dobrat další dvě karty. Dosud získané suroviny zůstávají.</li><li>Zaplať cenu vylepšení jedné aktivní karty. Karta změní stav a tah končí.</li><li>Když v balíčku nic nezůstane, končí kolo a objevíš dvě nové karty.</li></ol>
+    <p>Vývoj karty si prohlédneš kliknutím na stavové tečky vpravo nahoře.</p>
+  </dialog>
+
+  <div id="round-transition" class="round-transition" hidden aria-live="assertive">
+    <div class="round-transition-copy"><span id="round-finished">Kolo dokončeno</span><strong id="round-next">Nové karty do balíčku</strong></div>
+    <div id="round-transition-body" class="round-transition-body"></div>
+    <div class="shuffle-cards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+
