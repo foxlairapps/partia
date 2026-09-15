@@ -45,7 +45,7 @@ V hlavičce se každá získaná jednotka zobrazuje samostatnou ikonou ve stabil
 
 ## 5. Rozhraní
 
-- Fixní hlavička obsahuje logo, suroviny, dobírací balíček, dobrání dvou karet, ukončení tahu, odhazovací balíček, číslo kola a tahu a hamburger menu.
+- Fixní hlavička obsahuje logo, suroviny, dobírací balíček, dobrání dvou karet, číslo kola, ukončení tahu, odhazovací balíček a hamburger menu. Na telefonu se textová tlačítka zkrátí na ikony a při dalším zúžení se hlavička rozdělí do dvou řádků.
 - Počet karet v řádku lze nastavit na 4, 6 nebo 8. Volba se ukládá v prohlížeči.
 - Karty zachovávají poměr stran a prvky na kartě se škálují společně s kartou.
 - Stavové tečky otevírají galerii všech stavů.
@@ -54,7 +54,7 @@ V hlavičce se každá získaná jednotka zobrazuje samostatnou ikonou ve stabil
 
 ## 6. Ukládání
 
-Prototyp ukládá stav hry do `localStorage` prohlížeče pod klíčem `patria-saved-game`. Nastavení počtu karet v řádku používá klíč `patria-max-columns`.
+Prototyp ukládá stav hry do `localStorage` prohlížeče pod klíčem `patria-saved-game`. Nastavení počtu karet v řádku používá klíč `patria-max-columns`; volitelné zobrazení interních čísel karet klíč `patria-show-card-numbers`.
 
 Uložená hra je zatím lokální pro konkrétní prohlížeč a zařízení. Synchronizace mezi zařízeními ani uživatelské účty nejsou implementované.
 
@@ -83,8 +83,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 
 ## 10. Známá omezení a další směr
 
-- Prototyp obsahuje jen první sadu karet a zjednodušenou část pravidel.
-- Některé texty efektů jsou již připravené datově, ale jejich specifické chování bude potřeba postupně doprogramovat.
+- Prototyp obsahuje základních 22 karet. Akce objevující karty s čísly 071 a vyšší jsou připravené, ale cílové karty přibudou až s navazující sadou.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
 - Před rozšířením obsahu je vhodné oddělit data karet od herního enginu do samostatného datového souboru.
