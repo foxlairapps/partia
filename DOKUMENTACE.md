@@ -83,8 +83,8 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 
 ## 10. Známá omezení a další směr
 
-- Kampaň je zpracovaná do karty 059. Druhá vlna přistěhovalců otevírá volbu z karet 048–051; další období přidávají Mohylu, Čarodějnici, Písaře, volbu vládce, Mor, Vraha, Požár města a Tajemnou jeskyni. V katalogu jsou i všechny jejich návaznosti: 078–081, 105–106, 108 a 119–134, takže žádný objev nezmizí bez náhrady.
-- Assety nově přidaných karet jsou uložené podle čísla a stavu (`059a.jpg`, `059b.jpg` atd.). Každá nová karta má vlastní tematický motiv; klíčové vícestavové vývoje mají samostatné ilustrace jednotlivých stavů.
+- Kampaň je zpracovaná do karty 070. Karty 060–067 přidávají zkušené bandity s vícečetným blokováním, Temného prince, vojenský tábor, větvená Vzdálená pole, Tornádo a Povodeň, princeznu a Nemoc. Karta 068 zahájí poslední období s volbami 069 a 070; po jeho ukončení hra zobrazí celkovou slávu.
+- Assety nově přidaných karet jsou uložené podle čísla a stavu (`070a.jpg`, `070b.jpg` atd.). Každá nová karta i každý její stav má vlastní tematický motiv.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
 - Před rozšířením obsahu je vhodné oddělit data karet od herního enginu do samostatného datového souboru.
