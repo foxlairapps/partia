@@ -301,9 +301,11 @@ function migrateCampaignQueue(){
   if(state.finalRound)known.add(68);
   // Starší uložené hry zůstaly po odemknutí permanentů bez další dvojice karet.
   // Pokud v uložené partii ještě není nic z druhé části kampaně, doplň její vstupní karty.
-  if(![...known].some(number=>number>=28)){
-    state.discoveries.push({number:28,template:"volcano"},{number:29,template:"opportunist"});
-    known.add(28);known.add(29);
+  if((state.round||1)<=9){
+    const missing=[];
+    if(!known.has(28)){missing.push({number:28,template:"volcano"});known.add(28);}
+    if(!known.has(29)){missing.push({number:29,template:"opportunist"});known.add(29);}
+    if(missing.length)state.discoveries=[...missing,...state.discoveries];
   }
   if(![31,32,33,34].some(number=>known.has(number))&&!known.has(30))state.discoveries.push({number:30,template:"immigrantDecree"});
   if(!known.has(35))state.discoveries.push({number:35,template:"mountain"});
