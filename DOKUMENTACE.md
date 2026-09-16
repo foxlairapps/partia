@@ -87,6 +87,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Assety nově přidaných karet jsou uložené podle čísla a stavu (`070a.jpg`, `070b.jpg` atd.). Každá nová karta i každý její stav má vlastní tematický motiv.
 - Build 0.15.0 přidává samostatnou hlavní stránku, načtení uložené hry ze souboru a okamžité uložení kompletního stavu z menu. Na telefonu lze zvolit 2, 3, 4, 6 nebo 8 karet v řádku; velikost karet respektuje také dostupnou výšku obrazovky.
 - Build 0.15.1 sjednocuje zarovnání dialogů, pružně využívá šířku aktivní zóny, dokončuje svislé posouvání karet a přesouvá potvrzení vylepšení i Bandity k horním ovládacím ikonám. Dvojité klepnutí otevře zvětšenou aktivní kartu.
+- Build 0.15.2 přidává krátké vizuální uvedení Bandity před volbou blokované karty a zjednodušuje jeho dialog pouze na samotnou herní volbu. Horní potvrzení dialogů zůstává přichycené uvnitř obrazovky a vylepšení se na telefonu naležato přizpůsobuje dostupné výšce.
 - Závěrečná a úvodní stránka kola jsou vertikálně rolovatelné. Úvod nového kola používá na malém displeji vodorovný pás zmenšených karet, které lze otevřít do plného detailu.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.

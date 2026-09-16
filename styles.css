@@ -167,9 +167,10 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
   letter-spacing:.3em;
   text-align:center;
 }
-.upgrade-dialog{position:relative;padding-top:54px}
-.upgrade-corner-actions,.dialog-corner-actions{position:absolute;z-index:8;top:10px;right:12px;display:flex;gap:8px}
+.upgrade-dialog{position:relative;padding-top:10px}
+.upgrade-corner-actions,.dialog-corner-actions{position:sticky;z-index:8;top:0;display:flex;justify-content:flex-end;gap:8px;width:100%;height:37px;margin:0 0 8px;pointer-events:none}
 .upgrade-corner-actions .dialog-close,.dialog-corner-actions .dialog-close{position:static;float:none}
+.upgrade-corner-actions button,.dialog-corner-actions button{pointer-events:auto}
 .dialog-confirm-top{display:grid;place-items:center;width:37px;height:37px;padding:0;color:#21170a;border:1px solid #e5bd68;border-radius:50%;background:linear-gradient(#f1cf80,#c99740);box-shadow:0 4px 12px #0008;cursor:pointer;font-size:1.05rem;font-weight:800}
 .dialog-confirm-top[hidden]{display:none}
 .dialog-confirm-top:hover{filter:brightness(1.08)}
@@ -179,9 +180,20 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 .focus-card-shell{width:var(--card-width);margin:auto;justify-content:center}
 .focus-card-shell .game-card{cursor:default}
 .game-card img{pointer-events:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none}
+.bandit-arrival{position:fixed;z-index:190;inset:0;background:radial-gradient(circle at center,rgba(119,31,19,.2),transparent 44%);pointer-events:auto}
+.bandit-arrival-dagger{position:fixed;display:block;filter:drop-shadow(0 10px 14px #000) drop-shadow(0 0 10px rgba(255,188,91,.55));font-size:clamp(3.4rem,9vw,7rem);line-height:1;transform-origin:center}
 @media(max-width:520px) and (orientation:portrait){
-  .upgrade-dialog{padding:50px 12px 12px}
+  .upgrade-dialog{padding:8px 12px 12px}
   .upgrade-route{grid-template-columns:minmax(0,min(156px,calc((100vh - 120px)*.315)));gap:5px}
   .upgrade-route .route-arrow{font-size:1.25rem;line-height:1}
-  .upgrade-targets{margin:0 78px 8px 0;overflow-x:auto;justify-content:flex-start}
+  .upgrade-targets{margin:0 0 8px;overflow-x:auto;justify-content:flex-start}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .upgrade-dialog{width:min(680px,calc(100vw - 12px));max-height:calc(100vh - 12px);padding:7px 12px 10px}
+  .upgrade-corner-actions{height:34px;margin-bottom:5px}
+  .upgrade-corner-actions .dialog-close,.upgrade-corner-actions .dialog-confirm-top{width:34px;height:34px}
+  .upgrade-route{grid-template-columns:minmax(0,min(160px,calc((100vh - 76px)*.63))) auto minmax(0,min(160px,calc((100vh - 76px)*.63)));gap:8px}
+  .upgrade-route .preview-card{width:100%}
+  .upgrade-route .route-arrow{font-size:1.2rem}
+  .upgrade-targets{margin:0 0 5px;overflow-x:auto;justify-content:flex-start}
 }
