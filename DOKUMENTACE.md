@@ -83,7 +83,8 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 
 ## 10. Známá omezení a další směr
 
-- Kampaň je zpracovaná do karty 046. Karty 037–042 otevírají cíle a trvalé volby panství; karty 043–046 přidávají kamenickou, povětrnostní a vojenskou větev. Kameník má v katalogu i navazující karty 088, 089 a 109–116, takže žádný objev nezmizí bez náhrady.
+- Kampaň je zpracovaná do karty 059. Druhá vlna přistěhovalců otevírá volbu z karet 048–051; další období přidávají Mohylu, Čarodějnici, Písaře, volbu vládce, Mor, Vraha, Požár města a Tajemnou jeskyni. V katalogu jsou i všechny jejich návaznosti: 078–081, 105–106, 108 a 119–134, takže žádný objev nezmizí bez náhrady.
+- Assety nově přidaných karet jsou uložené podle čísla a stavu (`059a.jpg`, `059b.jpg` atd.). Každá nová karta má vlastní tematický motiv; klíčové vícestavové vývoje mají samostatné ilustrace jednotlivých stavů.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
 - Před rozšířením obsahu je vhodné oddělit data karet od herního enginu do samostatného datového souboru.
@@ -97,4 +98,3 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Při požadavku na odhození karty jako platbu musí hráč vždy konkrétní kartu vybrat.
 - Detail otevřený z knihovny či odhazovacího balíčku se má zavřít zpět do původního dialogu.
 - Než se nové karty zamíchají, musí být možné prohlédnout je i všechny jejich stavy.
-
