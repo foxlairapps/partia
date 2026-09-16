@@ -15,9 +15,20 @@
     <div class="welcome-card">
       <img src="assets/meadow-2.jpg" alt="Krajina rodícího se panství" />
       <div class="welcome-shade" aria-hidden="true"></div>
-      <div class="welcome-copy"><span>Budování panství</span><h1>Patria</h1><p>Rozvíjej krajinu, budovy i obyvatele svého panství. Hru nelze prohrát — tvůj odkaz určí získané body.</p><button id="start-game-button" class="round-primary-action" type="button">Vstoupit do panství</button></div>
+      <div class="welcome-copy">
+        <span>Budování panství</span><h1>Patria</h1>
+        <p>Rozvíjej krajinu, budovy i obyvatele svého panství. Hru nelze prohrát — tvůj odkaz určí získané body.</p>
+        <div class="welcome-actions">
+          <button id="continue-game-button" class="round-primary-action" type="button" hidden>Pokračovat v uložené hře</button>
+          <button id="start-game-button" class="secondary-action" type="button">Začít novou hru</button>
+          <button id="load-game-button" class="secondary-action" type="button">Nahrát uloženou hru</button>
+          <button id="welcome-rules-button" class="welcome-link" type="button">Jak se hraje</button>
+        </div>
+        <p class="welcome-note">Průběh se automaticky uchovává v tomto zařízení. Uloženou hru můžeš také přenést jako soubor.</p>
+      </div>
     </div>
   </div>
+  <input id="load-game-input" type="file" accept="application/json,.json" hidden />
   <main class="game-shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark"><img src="assets/meadow-2.jpg" alt="" /></span><h1>Patria</h1></div>
@@ -36,6 +47,8 @@
           <div class="settings-section">
             <span class="settings-label">Karet v řádku</span>
             <div class="column-options" role="group" aria-label="Počet karet v řádku">
+              <button type="button" data-columns="2">2</button>
+              <button type="button" data-columns="3">3</button>
               <button type="button" data-columns="4">4</button>
               <button type="button" data-columns="6">6</button>
               <button type="button" data-columns="8">8</button>
@@ -44,8 +57,10 @@
             <label class="settings-toggle"><input id="confirm-production" type="checkbox" /> <span>Potvrzovat použití produkce</span></label>
           </div>
           <div class="settings-actions">
+            <button id="save-game-button" type="button"><span aria-hidden="true">↓</span> Uložit hru do souboru</button>
             <button id="card-list-button" type="button"><span aria-hidden="true">▦</span> Seznam karet</button>
             <button id="rules-button" type="button"><span aria-hidden="true">?</span> Jak hrát</button>
+            <button id="home-button" type="button"><span aria-hidden="true">⌂</span> Hlavní stránka</button>
             <button id="restart-button" type="button"><span aria-hidden="true">↻</span> Nová hra</button>
           </div>
           <div class="build-number">Build <strong id="build-number"></strong></div>
@@ -82,4 +97,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-

@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.14.0";
+const BUILD_NUMBER = "0.15.0";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -269,7 +269,7 @@ let roundTransitionContext = null;
 let pendingRoundResolve = null;
 let pendingTurnResolve = null;
 const savedColumns = Number(localStorage.getItem("patria-max-columns"));
-let maxColumns = [4,6,8].includes(savedColumns) ? savedColumns : 6;
+let maxColumns = [2,3,4,6,8].includes(savedColumns) ? savedColumns : 6;
 let showCardNumbers = localStorage.getItem("patria-show-card-numbers") === "true";
 const savedProductionConfirmation=localStorage.getItem("patria-confirm-production");
 let confirmProductionSetting=savedProductionConfirmation===null?(matchMedia("(pointer: coarse)").matches||innerWidth<760):savedProductionConfirmation==="true";
@@ -292,9 +292,27 @@ function serializableState(phase="turn"){
   return {version:3,phase,savedAt:new Date().toISOString(),round:state.round,turn:state.turn,resources:state.resources,cards:state.cards,deck:state.deck,slots:state.slots,discard:state.discard,inactive:[...state.inactive],blocked:state.blocked,discoveries:state.discoveries,permanents:state.permanents,specials:state.specials,decreePending:state.decreePending,permanentIntroQueue:state.permanentIntroQueue||[],immigrantChoices:state.immigrantChoices||[],finalRound:!!state.finalRound};
 }
 function autosave(phase="turn"){localStorage.setItem("patria-autosave",JSON.stringify(serializableState(phase)));}
+function applySavedState(saved){
+  if(!saved||!Array.isArray(saved.cards)||!Array.isArray(saved.deck)||!Array.isArray(saved.discard))throw new Error("Neplatný soubor uložené hry.");
+  state={...saved,inactive:new Set(saved.inactive||[]),blocked:saved.blocked||{},resources:{...emptyResources(),...(saved.resources||{})},permanents:saved.permanents||[],specials:saved.specials||[],discoveries:saved.discoveries||[],slots:[...(saved.slots||[])],permanentIntroQueue:saved.permanentIntroQueue||[],immigrantChoices:saved.immigrantChoices||[],busy:false,selectedCard:null};
+  while(state.slots.length<80)state.slots.push(null);
+  migrateCampaignQueue();render();
+  document.querySelector("#welcome-screen").hidden=true;
+  if(saved.phase==="intermission"){
+    if(saved.finalRound)showFinalScore();
+    else{
+      state.busy=true;
+      showRoundTransition(state.round,state.round+1).then(()=>{state.round+=1;state.turn=1;state.busy=false;startRound();});
+    }
+  }else{
+    const unresolved=activeIds().filter(id=>{const card=getCard(id);return card&&["block-coin","block-land-building","block-production","block-building","assassin"].includes(getStage(card).onPlay);});
+    queueBanditBlocks(unresolved);
+  }
+  return true;
+}
 function restoreAutosave(){
   const raw=localStorage.getItem("patria-autosave");if(!raw)return false;
-  try{const saved=JSON.parse(raw);state={...saved,inactive:new Set(saved.inactive||[]),blocked:saved.blocked||{},permanents:saved.permanents||[],specials:saved.specials||[],discoveries:saved.discoveries||[],slots:[...(saved.slots||[])],permanentIntroQueue:saved.permanentIntroQueue||[],immigrantChoices:saved.immigrantChoices||[],busy:false,selectedCard:null};while(state.slots.length<80)state.slots.push(null);migrateCampaignQueue();render();if(saved.phase==="intermission"){if(saved.finalRound)showFinalScore();else{state.busy=true;showRoundTransition(state.round,state.round+1);}}else{const unresolved=activeIds().filter(id=>{const card=getCard(id);return card&&["block-coin","block-land-building","block-production","block-building","assassin"].includes(getStage(card).onPlay);});queueBanditBlocks(unresolved);}return true;}catch{return false;}
+  try{return applySavedState(JSON.parse(raw));}catch{return false;}
 }
 function migrateCampaignQueue(){
   const known=new Set([...state.cards,...state.permanents,...state.specials,...state.discoveries].map(item=>item.number));
@@ -312,8 +330,23 @@ function migrateCampaignQueue(){
   if(!known.has(36))state.discoveries.push({number:36,template:"mercenary"});
   discoveryQueue.filter(spec=>spec.number>=37&&!known.has(spec.number)).forEach(spec=>state.discoveries.push({...spec}));
 }
-function showWelcome(){document.querySelector("#welcome-screen").hidden=false;hideSettingsMenu();}
+function showWelcome(){
+  closeDialogs();
+  document.querySelector("#continue-game-button").hidden=!(state||localStorage.getItem("patria-autosave"));
+  document.querySelector("#welcome-screen").hidden=false;
+  hideSettingsMenu();
+}
 function startFromWelcome(){document.querySelector("#welcome-screen").hidden=true;localStorage.removeItem("patria-autosave");newGame();}
+function continueFromWelcome(){
+  document.querySelector("#welcome-screen").hidden=true;
+  if(state){render();return;}
+  if(!restoreAutosave()){showWelcome();notify("Uloženou hru se nepodařilo načíst.");}
+}
+async function loadGameFile(file){
+  if(!file)return;
+  try{const saved=JSON.parse(await file.text());applySavedState(saved);localStorage.setItem("patria-autosave",JSON.stringify(serializableState(saved.phase==="intermission"?"intermission":"turn")));notify("Uložená hra byla načtena.");}
+  catch(error){showWelcome();notify(error?.message||"Soubor uložené hry se nepodařilo načíst.");}
+}
 
 function emptyResources() { return Object.fromEntries(Object.keys(R).map(k => [k,0])); }
 function shuffle(items) {
@@ -323,7 +356,7 @@ function shuffle(items) {
 }
 function getCard(id) { return state.cards.find(card => card.id === id) || state.permanents.find(card => card.id === id) || state.specials.find(card => card.id === id); }
 function getTemplate(card) { return templates[card.template]; }
-function cardAsset(card,stageIndex=card.state){return `assets/${String(card.number??card.id).padStart(3,"0")}${String.fromCharCode(97+stageIndex)}.jpg`;}
+function cardAsset(card,stageIndex=card.state){return `assets/${String(card.number??card.id).padStart(3,"0")}${String.fromCharCode(97+stageIndex)}.jpg?v=${BUILD_NUMBER}`;}
 function getStage(card) { return getTemplate(card).stages[card.state]; }
 function getKind(card,stageIndex=card.state){const template=getTemplate(card);return template.stages[stageIndex].kind||template.kind;}
 function isFriendly(card){return !!card&&!getKind(card).includes("Nepřítel")&&!state.blocked[card.id];}
@@ -902,7 +935,7 @@ async function endRound() {
 
 function totalFame(){return [...state.cards,...state.permanents].reduce((sum,card)=>sum+(card.score??getStage(card).fame??0)+(card.fameBonus||0),0);}
 function showFinalScore(){
-  const overlay=document.querySelector("#round-transition");document.querySelector("#round-finished").textContent="Kronika panství je uzavřena";document.querySelector("#round-next").textContent=`Celková sláva: ${totalFame()} bodů`;document.querySelector("#round-transition-body").innerHTML=`<div class="round-end-actions"><button class="secondary-action" data-save-game type="button">Uložit hru</button><button class="secondary-action" data-open-library type="button">Knihovna karet</button><button class="primary-action" data-final-new-game type="button">Nová hra</button></div>`;overlay.className="round-transition phase-intermission";overlay.hidden=false;
+  const overlay=document.querySelector("#round-transition");document.querySelector("#round-finished").textContent="Kronika panství je uzavřena";document.querySelector("#round-next").textContent=`Celková sláva: ${totalFame()} bodů`;document.querySelector("#round-transition-body").innerHTML=`<div class="round-end-actions"><button class="secondary-action" data-open-library type="button">Knihovna karet</button><button class="secondary-action" data-go-home type="button">Hlavní stránka</button><button class="primary-action" data-final-new-game type="button">Nová hra</button></div>`;overlay.className="round-transition phase-intermission";overlay.hidden=false;
 }
 
 async function resolveEndRoundEvents(){
@@ -920,15 +953,15 @@ function showRoundTransition(finished,next) {
   const exportCard=state.permanents.find(card=>card.number===27);
   const exportRewards=exportCard?PERMANENT_TRACKS[27].thresholds.filter(threshold=>exportCard.value>=threshold&&!exportCard.claimed?.includes(threshold)):[];
   document.querySelector("#round-finished").textContent=`Kolo ${finished} dokončeno`;
-  document.querySelector("#round-next").textContent="Panství uzavírá právě skončené období";
+  document.querySelector("#round-next").textContent="Další období na panství skončilo";
   document.querySelector("#round-transition-body").innerHTML=`
     <div class="round-rest-panel">
-      <p>Než připravíš další kolo, můžeš si projít své karty nebo uložit současný stav hry.</p>
+      <p class="round-autosave-note">Stav hry se automaticky ukládá na konci každého kola.</p>
       <div class="round-rest-actions">
         ${exportRewards.map(threshold=>`<button class="secondary-action" data-export-reward="${threshold}" type="button">📦 Uplatnit odměnu za ${threshold}</button>`).join("")}
-        <button class="secondary-action" data-save-game type="button">💾 Uložit hru</button>
-        <button class="secondary-action" data-open-library type="button">▦ Knihovna karet</button>
         <button class="round-primary-action" data-prepare-round type="button">Začít další kolo →</button>
+        <button class="secondary-action" data-open-library type="button">▦ Knihovna karet</button>
+        <button class="secondary-action" data-go-home type="button">⌂ Hlavní stránka</button>
       </div>
     </div>`;
   overlay.className="round-transition phase-intermission";
@@ -976,9 +1009,7 @@ function prepareNextRound() {
   document.querySelector("#round-next").textContent=`Kolo ${roundTransitionContext.next} začíná`;
   document.querySelector("#round-transition-body").innerHTML=`
     ${roundTransitionContext.immigrantMode?renderImmigrantChoice():found.length?`<p class="round-hint">Prohlédni si nové karty. Kliknutím na kartu otevřeš všechny její stavy.</p><div class="round-new-cards">${found.map(card=>getTemplate(card).chooseOnDiscover?`<div class="discovered-side-choice"><div class="side-pair">${getTemplate(card).stages.map((side,index)=>`<button class="round-card-button" data-detail="${card.id}" type="button" aria-label="Prohlédnout kartu ${side.name}">${renderPreviewCard(card,index)}</button>`).join("")}</div><span>Zvol stranu karty:</span><div class="column-options">${getTemplate(card).stages.map((side,index)=>`<button type="button" data-choose-side="${card.id}" data-side="${index}" class="${card.state===index?"selected":""}">${side.name}</button>`).join("")}</div></div>`:`<button class="round-card-button" data-detail="${card.id}" type="button" aria-label="Prohlédnout kartu ${getStage(card).name}">${renderPreviewCard(card,card.state)}</button>`).join("")}</div>`:state.decreePending?`<p class="round-hint">Nové instituce byly založeny. Dokonči jejich úvodní rozhodnutí.</p>`:`<p class="round-hint">V tomto období už nečekají žádné další nové karty.</p>`}
-    <div class="round-discovery-actions">
-      <button class="secondary-action" data-open-library type="button">▦ Knihovna karet</button>
-    </div>`;
+    `;
   document.querySelector("#round-transition-body").insertAdjacentHTML("beforeend",`<div class="round-discovery-footer"><button class="shuffle-round-action" data-shuffle-round type="button" ${state.decreePending||state.permanentIntroQueue.length||roundTransitionContext.immigrantMode?"disabled":""}><span class="mini-deck" aria-hidden="true">${state.cards.length}</span><strong>Zamíchat</strong></button></div>`);
   document.querySelector("#round-transition").className="round-transition phase-discovery";
   if(state.permanentIntroQueue.length)setTimeout(showPermanentIntro,0);else if(state.decreePending)setTimeout(()=>showDecreeChoice("land"),0);
@@ -1019,7 +1050,9 @@ async function shuffleAndStartRound() {
 }
 
 function saveGame() {
-  const blob=new Blob([JSON.stringify(serializableState("intermission"),null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`patria-kolo-${state.round}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify("Soubor uložené hry byl připraven ke stažení.");
+  if(!state)return;
+  const phase=roundTransitionContext?.phase==="intermission"?"intermission":"turn";
+  const blob=new Blob([JSON.stringify(serializableState(phase),null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`patria-kolo-${state.round}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify("Kompletní stav hry byl uložen do souboru.");
 }
 
 function showLibrary() {
@@ -1270,8 +1303,10 @@ function updateCardSize() {
   const area=document.querySelector(".board-scroll"), grid=document.querySelector("#play-area");
   if (!area || !grid) return;
   const horizontal=Math.floor((area.clientWidth-4-(maxColumns-1)*10)/maxColumns);
-  const width=Math.max(64,horizontal);
   const availableHeight=Math.max(120,area.parentElement.clientHeight);
+  const visibleRows=Math.max(1,Math.min(2,Math.ceil(grid.children.length/maxColumns)));
+  const vertical=Math.floor(((availableHeight-18-(visibleRows-1)*10)/visibleRows)*.63);
+  const width=Math.max(64,Math.min(horizontal,vertical));
   area.style.height=`${availableHeight}px`;
   area.style.overflowY="auto";
   grid.style.setProperty("--card-width",`${width}px`);
@@ -1316,6 +1351,7 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-confirm-retrieve")) confirmRetrieveCard();
     if (button.hasAttribute("data-confirm-action-choice")) confirmActionChoice();
     if (button.hasAttribute("data-save-game")) saveGame();
+    if (button.hasAttribute("data-go-home")) showWelcome();
     if (button.hasAttribute("data-final-new-game")){document.querySelector("#round-transition").hidden=true;startFromWelcome();}
     if (button.hasAttribute("data-open-library")) showLibrary();
     if (button.hasAttribute("data-close-card-list")) document.querySelector("#card-list-dialog").close();
@@ -1379,8 +1415,14 @@ document.querySelector("#advance-button").addEventListener("click",advance);
 document.querySelector("#pass-button").addEventListener("click",()=>{if(!state.busy)endTurn(false);});
 document.querySelector("#restart-button").addEventListener("click",()=>{closeDialogs();showWelcome();});
 document.querySelector("#start-game-button").addEventListener("click",startFromWelcome);
+document.querySelector("#continue-game-button").addEventListener("click",continueFromWelcome);
+document.querySelector("#load-game-button").addEventListener("click",()=>document.querySelector("#load-game-input").click());
+document.querySelector("#load-game-input").addEventListener("change",event=>{loadGameFile(event.target.files?.[0]);event.target.value="";});
+document.querySelector("#welcome-rules-button").addEventListener("click",()=>document.querySelector("#rules-dialog").showModal());
 document.querySelector("#rules-button").addEventListener("click",()=>{hideSettingsMenu();document.querySelector("#rules-dialog").showModal();});
 document.querySelector("#card-list-button").addEventListener("click",showCardList);
+document.querySelector("#save-game-button").addEventListener("click",()=>{hideSettingsMenu();saveGame();});
+document.querySelector("#home-button").addEventListener("click",showWelcome);
 document.querySelector("#settings-button").addEventListener("click",event=>{
   const menu=document.querySelector("#settings-menu"),open=menu.hidden;
   menu.hidden=!open;
@@ -1395,10 +1437,11 @@ document.querySelector("#discard-pile").addEventListener("click",()=>showDiscard
 document.querySelectorAll("dialog").forEach(dialog=>{
   dialog.addEventListener("cancel",event=>{if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type))event.preventDefault();});
   dialog.addEventListener("click",event=>{if(event.target===dialog){if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type))return;dialog.close();if(dialog.id==="discard-choice-dialog")pendingDiscard=null;if(dialog.id==="upgrade-dialog")pendingUpgrade=null;if(dialog.id==="discard-browser-dialog")pendingDiscardBrowser=null;if(dialog.id==="action-choice-dialog")pendingActionChoice=null;if(dialog.id==="library-dialog")document.querySelector("#round-transition")?.classList.remove("behind-dialog");}});
+  dialog.addEventListener("close",()=>{if(dialog.id==="library-dialog")document.querySelector("#round-transition")?.classList.remove("behind-dialog");});
 });
 window.addEventListener("resize",updateCardSize);
 
 document.querySelector("#show-card-numbers").checked=showCardNumbers;
 document.querySelector("#confirm-production").checked=confirmProductionSetting;
 document.querySelector("#build-number").textContent=BUILD_NUMBER;
-if(!restoreAutosave())showWelcome();
+showWelcome();

@@ -114,3 +114,33 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 .permanent-intro{text-align:center;max-width:34rem;margin-inline:auto}.permanent-intro-icon{display:block;font-size:3rem;margin-bottom:.45rem}.permanent-intro p{max-width:31rem;margin:.55rem auto;color:var(--muted)}
 .immigrant-choice{width:min(100%,74rem);margin-inline:auto}.immigrant-cards{align-items:start}.immigrant-option{display:grid;gap:.7rem;padding:.55rem;border:1px solid transparent;border-radius:1rem;transition:border-color .18s,background .18s}.immigrant-option.selected{border-color:#d8ad4d;background:rgba(216,173,77,.1)}.immigrant-actions{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}.immigrant-actions button{min-width:0}.immigrant-counter{text-align:center;color:#e3c276;font-weight:700;margin:.7rem 0 0}
 
+/* Build 0.15: hlavní stránka a kompaktní mezifáze použitelné i na telefonu. */
+.welcome-screen{overflow-y:auto;align-items:start}.welcome-card{margin:auto}.welcome-copy{gap:10px}.welcome-actions{display:grid;width:min(310px,100%);gap:8px}.welcome-actions button{width:100%;min-height:42px;margin:0}.welcome-link{padding:7px;color:#ead8b6;border:0;background:transparent;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.welcome-note{font-size:.72rem!important;opacity:.8}
+.column-options{grid-template-columns:repeat(5,1fr)}
+.card-grid{justify-content:center}
+.round-transition{display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:10px;padding:clamp(18px,5vh,52px) 18px;overflow-x:hidden;overflow-y:auto}.round-transition-copy{position:static;flex:0 0 auto;margin:0;text-align:center}.round-transition-body{display:grid;align-content:start;justify-items:center;width:min(1050px,100%);min-height:0;max-height:none;overflow:visible}.round-rest-panel p,.round-autosave-note{margin:0 auto 12px}.round-rest-actions{gap:9px}.round-new-cards{width:100%;min-height:0;padding:3px 2px 12px}.round-discovery-footer{margin-top:10px;padding-top:12px}.phase-shuffle{display:grid;place-items:center;padding:20px;overflow:hidden}.phase-shuffle .round-transition-copy{align-self:end}.phase-shuffle .shuffle-cards{align-self:start}
+.choice-dialog .upgrade-confirm-bar,.upgrade-confirm-bar{justify-content:center}.upgrade-route .preview-label{display:none}
+
+@media(max-width:760px){
+  .upgrade-dialog{width:min(640px,calc(100vw - 16px));padding:16px}
+  .upgrade-route{grid-template-columns:minmax(0,150px) auto minmax(0,150px);gap:10px}
+  .upgrade-route .preview-card{width:100%}
+  .route-arrow{transform:none}
+  .round-transition{padding:14px 10px;gap:7px}
+  .round-transition-copy strong{font-size:1.35rem}
+  .round-transition-body{width:100%}
+  .round-new-cards{justify-content:flex-start;gap:10px;overflow-x:auto;scroll-snap-type:x proximity}
+  .round-card-button{flex:0 0 132px;width:132px;scroll-snap-align:center}
+  .round-new-cards .preview-card{width:100%}
+  .round-hint{margin-bottom:9px;text-align:center}
+  .round-rest-actions button{min-height:42px}
+}
+@media(max-width:520px) and (orientation:portrait){
+  .welcome-screen{padding:10px}.welcome-card{min-height:calc(100vh - 20px);border-radius:15px}.welcome-copy{right:6%;bottom:4%;left:6%}.welcome-copy h1{font-size:2.8rem}.welcome-copy p{font-size:.82rem;line-height:1.35}
+  .upgrade-route{grid-template-columns:minmax(0,156px);gap:7px}.route-arrow{transform:rotate(90deg)}
+  .upgrade-confirm-bar{flex-wrap:wrap;margin-top:10px;padding-top:10px}
+  .round-transition{padding-top:10px}.round-transition-copy{gap:3px}.round-transition-copy span{font-size:.68rem}.round-transition-copy strong{font-size:1.15rem}
+  .round-rest-panel p{font-size:.8rem;line-height:1.35}.round-rest-actions{width:min(280px,100%)}
+  .round-card-button{flex-basis:118px;width:118px}
+  .column-options{grid-template-columns:repeat(5,1fr);gap:3px}.column-options button{height:32px}
+}

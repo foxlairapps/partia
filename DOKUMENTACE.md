@@ -85,6 +85,8 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 
 - Kampaň je zpracovaná do karty 070. Karty 060–067 přidávají zkušené bandity s vícečetným blokováním, Temného prince, vojenský tábor, větvená Vzdálená pole, Tornádo a Povodeň, princeznu a Nemoc. Karta 068 zahájí poslední období s volbami 069 a 070; po jeho ukončení hra zobrazí celkovou slávu.
 - Assety nově přidaných karet jsou uložené podle čísla a stavu (`070a.jpg`, `070b.jpg` atd.). Každá nová karta i každý její stav má vlastní tematický motiv.
+- Build 0.15.0 přidává samostatnou hlavní stránku, načtení uložené hry ze souboru a okamžité uložení kompletního stavu z menu. Na telefonu lze zvolit 2, 3, 4, 6 nebo 8 karet v řádku; velikost karet respektuje také dostupnou výšku obrazovky.
+- Závěrečná a úvodní stránka kola jsou vertikálně rolovatelné. Úvod nového kola používá na malém displeji vodorovný pás zmenšených karet, které lze otevřít do plného detailu.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
 - Před rozšířením obsahu je vhodné oddělit data karet od herního enginu do samostatného datového souboru.
