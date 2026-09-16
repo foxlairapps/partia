@@ -91,7 +91,7 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 @media(max-width:930px){.turn-action{width:44px;padding:5px}.turn-action strong{display:none}.turn-action span{font-size:1rem}.header-actions{gap:5px;padding-inline:7px}.topbar{grid-template-columns:auto minmax(150px,1fr) auto auto;min-width:0;gap:6px}.resources{min-width:150px}}
 @media(max-width:680px){body{overflow:hidden}.game-shell{padding:0 8px}.topbar{grid-template-columns:42px minmax(0,1fr);grid-template-rows:auto auto;min-width:0;gap:7px 8px;padding:7px 0}.brand{grid-column:1;grid-row:1}.brand-mark{width:40px;height:36px}.resources{grid-column:2;grid-row:1;width:100%;min-width:0;height:40px;min-height:40px;padding:5px 7px}.produced-resource{font-size:1.05rem}.header-tools{grid-column:1;grid-row:2;margin:0}.gear-button{width:40px;height:40px}.header-actions{grid-column:2;grid-row:2;justify-content:space-between;width:100%;min-width:0;padding:5px 6px}.header-actions .pile-zone{min-width:31px}.header-actions .deck-stack{width:26px;height:35px}.round-counter{min-width:39px;padding-inline:5px}.turn-action{width:40px;height:40px;min-height:40px}.settings-popover{top:44px;right:auto;left:0}.table-area{padding-top:8px}}
 .discovered-side-choice{display:grid;gap:10px;justify-items:center}.side-pair{display:flex;gap:14px}.discovered-side-choice>span{color:var(--muted);font-size:.74rem}.discovered-side-choice .column-options{width:100%;grid-template-columns:repeat(2,1fr)}
-.single-confirm-card{width:178px;margin:0 auto}.single-confirm-card .preview-card{width:100%}.round-transition.behind-dialog{visibility:hidden}.bandit-blocked{filter:saturate(.42) brightness(.72)}.bandit-mark{position:absolute;z-index:4;top:43%;left:50%;display:flex;align-items:center;gap:5px;padding:7px 9px;color:#fff1df;border:2px solid #e5684b;border-radius:8px;background:rgba(82,20,13,.9);box-shadow:0 5px 18px #000b;transform:translate(-50%,-50%);cursor:pointer}.bandit-mark span{font-size:.65rem;font-weight:750;text-transform:uppercase}.bandit-link-origin{position:absolute;z-index:4;top:42%;right:7px;width:30px;height:30px;padding:0;border:1px solid #f0bd65;border-radius:50%;background:rgba(47,31,18,.9);cursor:pointer}.game-card.linked-highlight{filter:none;border-color:#ffdc82;box-shadow:0 0 0 3px rgba(255,197,82,.72),0 0 28px rgba(229,94,52,.45)}.game-card.linked-highlight::after{position:absolute;z-index:5;top:42%;left:7px;display:grid;place-items:center;width:30px;height:30px;border:1px solid #f0bd65;border-radius:50%;background:rgba(47,31,18,.94);content:"🔗"}
+.single-confirm-card{width:178px;margin:0 auto}.single-confirm-card .preview-card{width:100%}.round-transition.behind-dialog{visibility:hidden}.bandit-blocked{filter:saturate(.42) brightness(.72)}.bandit-mark{position:absolute;z-index:4;top:43%;left:50%;display:flex;align-items:center;padding:7px 9px;color:#fff1df;border:2px solid #e5684b;border-radius:8px;background:rgba(82,20,13,.9);box-shadow:0 5px 18px #000b;transform:translate(-50%,-50%);pointer-events:none}.bandit-mark span{font-size:.65rem;font-weight:750;text-transform:uppercase}.game-card.linked-highlight{filter:none;border-color:#ffdc82;box-shadow:0 0 0 3px rgba(255,197,82,.72),0 0 28px rgba(229,94,52,.45)}
 .choice-dialog:has(.production-confirm){width:min(290px,calc(100vw - 28px));padding:18px}.choice-dialog:has(.production-confirm) .dialog-close{position:absolute;top:8px;right:8px;width:28px;height:28px;font-size:1rem}.production-confirm{display:grid;justify-items:center;gap:15px;padding:20px 12px 5px;text-align:center}.production-confirm strong{font-size:1rem;font-weight:550}.production-confirm .upgrade-action{min-width:130px}
 .bandit-actions{display:grid;gap:5px}.bandit-actions>span{font-size:.62rem}.bandit-actions>div{display:grid;grid-template-columns:1fr 1fr;gap:5px}.bandit-actions button{min-width:0;padding:4px;color:var(--ink);border:1px solid rgba(255,226,145,.35);border-radius:5px;background:rgba(53,40,26,.9);cursor:pointer;font-size:.58rem}.bandit-actions button:disabled{opacity:.38;cursor:not-allowed}
 
@@ -143,4 +143,45 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
   .round-rest-panel p{font-size:.8rem;line-height:1.35}.round-rest-actions{width:min(280px,100%)}
   .round-card-button{flex-basis:118px;width:118px}
   .column-options{grid-template-columns:repeat(5,1fr);gap:3px}.column-options button{height:32px}
+}
+
+/* Build 0.15.1: vycentrované dialogy a pružná herní plocha. */
+.dialog-header{
+  clear:both;
+  margin:7px 52px 24px;
+  text-align:center;
+}
+.dialog-header h2{margin:5px 0 11px}
+.dialog-header p{margin:0 auto;max-width:42rem}
+.dialog-header p+p{margin-top:8px}
+.rules-dialog>.eyebrow,.settings-dialog>.eyebrow{display:block;text-align:center}
+.rules-dialog h2,.settings-dialog h2{margin:5px 52px 20px;text-align:center}
+.board-scroll{padding-bottom:0}
+.board-scroll::after{
+  display:block;
+  width:100%;
+  padding:18px 0 14px;
+  color:rgba(218,184,111,.38);
+  content:"—  ◆  —";
+  font-size:.58rem;
+  letter-spacing:.3em;
+  text-align:center;
+}
+.upgrade-dialog{position:relative;padding-top:54px}
+.upgrade-corner-actions,.dialog-corner-actions{position:absolute;z-index:8;top:10px;right:12px;display:flex;gap:8px}
+.upgrade-corner-actions .dialog-close,.dialog-corner-actions .dialog-close{position:static;float:none}
+.dialog-confirm-top{display:grid;place-items:center;width:37px;height:37px;padding:0;color:#21170a;border:1px solid #e5bd68;border-radius:50%;background:linear-gradient(#f1cf80,#c99740);box-shadow:0 4px 12px #0008;cursor:pointer;font-size:1.05rem;font-weight:800}
+.dialog-confirm-top[hidden]{display:none}
+.dialog-confirm-top:hover{filter:brightness(1.08)}
+.dialog-confirm-top:disabled{filter:grayscale(.75);opacity:.42;cursor:not-allowed}
+.card-focus-dialog{width:min(404px,calc(100vw - 24px));padding:12px;overflow:visible;background:rgba(24,19,14,.96)}
+.card-focus-dialog::backdrop{cursor:pointer}
+.focus-card-shell{width:var(--card-width);margin:auto;justify-content:center}
+.focus-card-shell .game-card{cursor:default}
+.game-card img{pointer-events:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:none}
+@media(max-width:520px) and (orientation:portrait){
+  .upgrade-dialog{padding:50px 12px 12px}
+  .upgrade-route{grid-template-columns:minmax(0,min(156px,calc((100vh - 120px)*.315)));gap:5px}
+  .upgrade-route .route-arrow{font-size:1.25rem;line-height:1}
+  .upgrade-targets{margin:0 78px 8px 0;overflow-x:auto;justify-content:flex-start}
 }

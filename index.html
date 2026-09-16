@@ -75,12 +75,13 @@
   </main>
 
   <dialog id="card-dialog" class="card-dialog"><button class="dialog-close" data-close-card aria-label="Zavřít detail">×</button><div id="card-dialog-content"></div></dialog>
-  <dialog id="upgrade-dialog" class="upgrade-dialog"><button class="dialog-close" data-close-upgrade aria-label="Zrušit vylepšení">×</button><div id="upgrade-dialog-content"></div></dialog>
+  <dialog id="upgrade-dialog" class="upgrade-dialog"><div class="upgrade-corner-actions"><button class="dialog-close" data-close-upgrade aria-label="Zrušit vylepšení">×</button><button id="upgrade-confirm-button" class="dialog-confirm-top" data-confirm-upgrade aria-label="Potvrdit vylepšení">✓</button></div><div id="upgrade-dialog-content"></div></dialog>
   <dialog id="discard-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-choice aria-label="Zrušit volbu">×</button><div id="discard-choice-content"></div></dialog>
-  <dialog id="action-choice-dialog" class="choice-dialog"><button class="dialog-close" data-close-action-choice aria-label="Zrušit volbu">×</button><div id="action-choice-content"></div></dialog>
+  <dialog id="action-choice-dialog" class="choice-dialog"><div class="dialog-corner-actions"><button class="dialog-close" data-close-action-choice aria-label="Zrušit volbu">×</button><button id="action-confirm-button" class="dialog-confirm-top" data-confirm-action-choice type="button" aria-label="Potvrdit volbu" hidden>✓</button></div><div id="action-choice-content"></div></dialog>
   <dialog id="discard-browser-dialog" class="discard-browser-dialog"><button class="dialog-close" data-close-discard-browser aria-label="Zavřít odhazovací balíček">×</button><div id="discard-browser-content"></div></dialog>
   <dialog id="library-dialog" class="library-dialog"><button class="dialog-close" data-close-library aria-label="Zavřít knihovnu">×</button><div id="library-dialog-content"></div></dialog>
   <dialog id="card-list-dialog" class="card-list-dialog"><button class="dialog-close" data-close-card-list aria-label="Zavřít seznam karet">×</button><div id="card-list-content"></div></dialog>
+  <dialog id="card-focus-dialog" class="card-focus-dialog" aria-label="Zvětšená karta"><div id="card-focus-content"></div></dialog>
 
   <dialog id="rules-dialog" class="rules-dialog">
     <button class="dialog-close" data-close-dialog aria-label="Zavřít pravidla">×</button><span class="eyebrow">Základní pravidla</span><h2>Jeden tah, jedno velké rozhodnutí</h2>

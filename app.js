@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.15.0";
+const BUILD_NUMBER = "0.15.1";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -268,6 +268,7 @@ let selectedBanditLink = null;
 let roundTransitionContext = null;
 let pendingRoundResolve = null;
 let pendingTurnResolve = null;
+let layoutCardCount = 0;
 const savedColumns = Number(localStorage.getItem("patria-max-columns"));
 let maxColumns = [2,3,4,6,8].includes(savedColumns) ? savedColumns : 6;
 let showCardNumbers = localStorage.getItem("patria-show-card-numbers") === "true";
@@ -399,6 +400,7 @@ function startTurn(increment = true) {
   if (increment) state.turn += 1;
   state.resources = emptyResources();
   state.inactive = new Set();
+  layoutCardCount = 0;
   const drawn=drawCards(Math.min(4, state.deck.length), false);
   render();
   animateDeal(drawn);
@@ -694,6 +696,9 @@ function queueBanditBlocks(drawnIds){
 }
 function renderActionChoice(){
   if(!pendingActionChoice)return;
+  const topConfirmation=document.querySelector("#action-confirm-button");
+  topConfirmation.hidden=true;
+  topConfirmation.disabled=false;
   if(pendingActionChoice.type==="permanent-intro"){
     const descriptions={25:["Armáda","Postupně do ní vkládáš sílu. Každý další stupeň vyžaduje větší sadu a vložení ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],26:["Pokladnice","Postupně do ní ukládáš mince. Vždy je nutné vložit celou následující sadu a akce ukončí tah.","Nejvyšší dosažená úroveň určí bodovou hodnotu na konci hry."],27:["Export","Zboží můžeš do Exportu vložit ze své zásoby; tah tím nekončí.","Po dosažení vyznačených hranic si mezi koly vybereš nebo uplatníš novou odměnu."],38:["Nový cíl panství","Zvol Početní převahu, nebo Vojenskou nadvládu. Vybraná strana určuje závěrečné bodování.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],39:["Nový cíl panství","Zvol Rozšiřování hranic, nebo Maximální využití. Cíl mění závěrečné bodování celého balíčku.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],40:["Nový cíl panství","Zvol Věrnost, nebo Obchodníka. Za splnění podmínky získáš na konci hry 25 bodů.","Volba je trvalá; kartu si kdykoli prohlédneš v knihovně."],88:["Kamenný monument","Do monumentu vkládáš stále větší sady kamene a postupně získáváš body.","Vložení je velká akce a ukončí tah."],108:["Tajemný artefakt","Artefakt zůstává v panství natrvalo a nelze jej zničit.","Jeho bodová hodnota se započítává na konci hry."]},copy=descriptions[pendingActionChoice.number]||[getStage(getCard(pendingActionChoice.number)).name,"Tato karta zůstává v panství natrvalo a přináší dlouhodobou schopnost.","Podrobnosti najdeš po jejím rozkliknutí."];
     openActionChoice(`<div class="dialog-header permanent-intro"><span class="permanent-intro-icon">${permanentIcon(pendingActionChoice.number)}</span><span class="eyebrow">Nový permanent</span><h2>${copy[0]}</h2><p>${copy[1]}</p><p>${copy[2]}</p></div><div class="upgrade-confirm-bar"><button class="upgrade-action" data-confirm-action-choice type="button">${state.permanentIntroQueue.length>1?"Další":"Rozumím"}</button></div>`);
@@ -743,7 +748,8 @@ function renderActionChoice(){
     openActionChoice(`<div class="dialog-header"><span class="eyebrow">Objev</span><h2>Vyber navazující kartu</h2><p>Prohlédni si celou kartu a potvrď svou volbu.</p></div><div class="discard-choices">${pendingActionChoice.choices.map(number=>{const card={id:number,number,template:catalog[number],state:0};return `<button class="full-card-choice ${number===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${number}" type="button">${renderPreviewCard(card,0)}</button>`}).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${pendingActionChoice.selectedId?"":"disabled"}>Objevit kartu</button></div>`);
   } else {
     const blocking=pendingActionChoice.type==="block";
-    openActionChoice(`<div class="dialog-header"><span class="eyebrow">${blocking?"Bandita":"Volba karty"}</span><h2>${blocking?"Kterou kartu Bandita zablokuje?":"Kterou produkci chceš získat?"}</h2>${blocking?"<p>Volba je povinná. Bandita nic nezvolí automaticky.</p>":""}</div><div class="discard-choices">${pendingActionChoice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${id===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div><div class="upgrade-confirm-bar">${blocking?"":`<button class="secondary-action" data-close-action-choice type="button">Zrušit</button>`}<button class="upgrade-action" data-confirm-action-choice type="button" ${blocking&&!pendingActionChoice.selectedId?"disabled":""}>${blocking?"Zablokovat kartu":"Použít produkci"}</button></div>`);
+    if(blocking){topConfirmation.hidden=false;topConfirmation.disabled=!pendingActionChoice.selectedId;}
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">${blocking?"Bandita":"Volba karty"}</span><h2>${blocking?"Kterou kartu Bandita zablokuje?":"Kterou produkci chceš získat?"}</h2>${blocking?"<p>Volba je povinná. Bandita nic nezvolí automaticky.</p>":""}</div><div class="discard-choices">${pendingActionChoice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${id===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div>${blocking?"":`<div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button">Použít produkci</button></div>`}`);
   }
 }
 function pickResource(key){if(pendingActionChoice?.type==="reduce-upgrade"){const target=getCard(pendingActionChoice.selectedId),cost=target?upgradeCost(target,getStage(target).next[0]):{};if(cost?.[key]){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(pendingActionChoice?.type==="export"&&pendingActionChoice.config.resources?.includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();return;}if(pendingActionChoice?.type==="decree"&&pendingActionChoice.step==="building"){if(Object.keys(getProduction(getCard(pendingActionChoice.selectedId))).includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(!pendingActionChoice||!["resources","inventor"].includes(pendingActionChoice.type)||pendingActionChoice.type==="inventor"&&pendingActionChoice.mode!=="resources"||!pendingActionChoice.options.includes(key)||pendingActionChoice.selected.length>=pendingActionChoice.count)return;pendingActionChoice.selected.push(key);renderActionChoice();}
@@ -1151,8 +1157,10 @@ function showUpgradeChoice(id, preferredTarget = null) {
 function renderUpgradeDialog() {
   if (!pendingUpgrade) return;
   const card=getCard(pendingUpgrade.id), template=getTemplate(card), current=getStage(card);
+  const confirmation=document.querySelector("#upgrade-confirm-button"),cost=expandedBundle(upgradeCost(card,pendingUpgrade.target));
+  confirmation.setAttribute("aria-label",`Potvrdit vylepšení za ${cost}`);
+  confirmation.title=`Potvrdit · ${cost}`;
   document.querySelector("#upgrade-dialog-content").innerHTML=`
-    <div class="dialog-header"><span class="eyebrow">Vylepšení</span><h2>Na co se karta promění?</h2></div>
     ${current.next.length>1?`<div class="upgrade-targets">${current.next.map(target=>{
         const next=template.stages[target], selected=target===pendingUpgrade.target, cost=upgradeCost(card,target);
         return `<button class="upgrade-choice ${selected?"selected":""}" data-select-upgrade="${target}" type="button" ${canAfford(cost)?"":"disabled"}><span>${next.name}</span><strong>${expandedBundle(cost)}</strong></button>`;
@@ -1161,8 +1169,7 @@ function renderUpgradeDialog() {
       <div><span class="preview-label">Nyní</span>${renderPreviewCard(card,card.state)}</div>
       <span class="route-arrow" aria-hidden="true">→</span>
       <div><span class="preview-label">Po vylepšení</span>${renderPreviewCard(card,pendingUpgrade.target)}</div>
-    </div>
-    <div class="upgrade-confirm-bar"><button class="secondary-action" data-close-upgrade type="button">Zrušit</button><button class="upgrade-action confirm-upgrade" data-confirm-upgrade type="button">Potvrdit · ${expandedBundle(upgradeCost(card,pendingUpgrade.target))}</button></div>`;
+    </div>`;
 }
 
 function selectUpgradeTarget(target) {
@@ -1234,7 +1241,7 @@ function renderPreviewCard(card,stageIndex,showRoutes=false) {
   const previewCost=current.next.length===1?(template.branchCosts?.[current.next[0]]||current.cost):null;
   const previewUpgrades=current.next.map(target=>`<span class="upgrade-line" ${showRoutes?`data-route-target="${target}" title="Vede na: ${template.stages[target].name}"`:""}><span>⭐</span><strong>${expandedBundle(template.branchCosts?.[target]||current.cost)}</strong>${showRoutes?`<small>→ ${template.stages[target].name}</small>`:""}</span>`).join("");
   return `<article class="game-card preview-card ${current.next.length>1?"multiple-upgrades":""}">
-    <img class="card-art-full" src="${cardAsset(card,stageIndex)}" alt=""><div class="card-shade" aria-hidden="true"></div>
+    <img class="card-art-full" src="${cardAsset(card,stageIndex)}" alt="" draggable="false"><div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,stageIndex)}
     ${hasProduction?`<div class="production-space static-production">${productionIcons(production)}</div>`:""}
     ${ruleVisible(card.template,stageIndex)?`<div class="effect-panel">⚡ ${current.effect}</div>`:""}
@@ -1256,11 +1263,10 @@ function renderCard(id) {
   const isWitch=card.template==="witch";
   const missionaryReady=activeIds().some(otherId=>getCard(otherId).template==="missionary"&&getCard(otherId).state===0)&&canAfford({coin:3});
   return `<article class="game-card ${next.length>1?"multiple-upgrades":""} ${state.blocked[id]?"bandit-blocked":""} ${linkId&&linkId===selectedBanditLink?"linked-highlight":""}" data-card="${id}" ${linkId?`data-bandit-link="${linkId}"`:""} draggable="true" aria-label="${current.name}">
-    <img class="card-art card-art-full" src="${cardAsset(card,card.state)}" alt="" />
+    <img class="card-art card-art-full" src="${cardAsset(card,card.state)}" alt="" draggable="false" />
     <div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,card.state,id)}
-    ${state.blocked[id]?`<button class="bandit-mark" data-show-bandit-link="${state.blocked[id]}" type="button" aria-label="Tuto kartu blokuje Bandita">🔗 <span>Blokováno</span></button>`:""}
-    ${blockingVictim?`<button class="bandit-link-origin" data-show-bandit-link="${id}" type="button" aria-label="Ukázat blokovanou kartu">🔗</button>`:""}
+    ${state.blocked[id]?`<div class="bandit-mark" aria-label="Tuto kartu blokuje Bandita"><span>Blokováno</span></div>`:""}
     ${hasProduction?`<button class="production-space" data-produce="${id}" type="button" aria-label="Použít produkci: ${formatBundle(production)}" ${state.blocked[id]?"disabled":""}>${productionIcons(production)}</button>`:""}
     ${isBandit?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="defeat-bandit" type="button" ${canAfford({sword:banditCost})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="convert-bandit" type="button" ${missionaryReady?"":"disabled"}>🤝 Přivítat</button></div></div>`:isWitch?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="${card.state===0?"defeat-witch":"defeat-witch-hut"}" type="button" ${canAfford({sword:card.state===0?4:3})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="${card.state===0?"soothe-witch":"sacrifice-witch-hut"}" type="button">👤 ${card.state===0?"Uklidnit":"Obětovat"}</button></div></div>`:ruleVisible(card.template,card.state)?effectIsActive?`<button class="effect-panel active-effect" data-effect="${id}" type="button">⚡ ${current.effect}</button>`:`<div class="effect-panel">⚡ ${current.effect}</div>`:""}
     ${next.length?`<button class="upgrade-panel" data-upgrade-preview="${id}" type="button" aria-label="Vylepšit za ${upgradeAria}" ${affordableTargets.length?"":"disabled"}><div class="upgrade-lines">${upgradeRows}</div></button>`:""}
@@ -1288,10 +1294,12 @@ function render() {
   resourceBar.classList.toggle("empty",!producedResources);
   renderPermanents();
   const lastOccupied=state.slots.reduce((last,id,index)=>id===null?last:index,-1);
+  layoutCardCount=Math.max(layoutCardCount,lastOccupied+1);
   const visibleSlots=lastOccupied<0?[]:state.slots.slice(0,lastOccupied+1).map((id,index)=>({id,index}));
   const playArea=document.querySelector("#play-area");
-  playArea.classList.toggle("two-rows",visibleSlots.length>maxColumns);
-  playArea.style.setProperty("--max-columns",maxColumns);
+  const layoutColumns=Math.max(1,Math.min(maxColumns,layoutCardCount||1));
+  playArea.classList.toggle("two-rows",visibleSlots.length>layoutColumns);
+  playArea.style.setProperty("--max-columns",layoutColumns);
   playArea.innerHTML=visibleSlots.map(({id,index})=>id===null?`<div class="card-slot empty-slot" data-slot="${index}" aria-hidden="true"></div>`:`<div class="card-slot" data-slot="${index}">${renderCard(id)}</div>`).join("");
   requestAnimationFrame(updateCardSize);
   document.querySelector("#empty-state").hidden=activeIds().length>0;
@@ -1302,14 +1310,31 @@ function render() {
 function updateCardSize() {
   const area=document.querySelector(".board-scroll"), grid=document.querySelector("#play-area");
   if (!area || !grid) return;
-  const horizontal=Math.floor((area.clientWidth-4-(maxColumns-1)*10)/maxColumns);
+  const columns=Math.max(1,Number(grid.style.getPropertyValue("--max-columns"))||maxColumns);
+  const gap=10;
+  const bottomSpace=42;
+  const horizontal=Math.floor((area.clientWidth-4-(columns-1)*gap)/columns);
   const availableHeight=Math.max(120,area.parentElement.clientHeight);
-  const visibleRows=Math.max(1,Math.min(2,Math.ceil(grid.children.length/maxColumns)));
-  const vertical=Math.floor(((availableHeight-18-(visibleRows-1)*10)/visibleRows)*.63);
-  const width=Math.max(64,Math.min(horizontal,vertical));
+  const visibleRows=Math.max(1,Math.ceil(grid.children.length/columns));
+  let width=Math.max(64,horizontal);
+  const idealCardHeight=width/.63;
+  if(visibleRows===1){
+    width=Math.max(64,Math.min(width,Math.floor((availableHeight-bottomSpace)*.63)));
+  }else{
+    const idealContentHeight=visibleRows*idealCardHeight+(visibleRows-1)*gap+bottomSpace;
+    const overflow=idealContentHeight-availableHeight;
+    if(overflow>0&&overflow<=idealCardHeight*.2){
+      const fitted=Math.floor(((availableHeight-bottomSpace-(visibleRows-1)*gap)/visibleRows)*.63);
+      width=Math.max(64,Math.min(width,fitted));
+    }
+  }
   area.style.height=`${availableHeight}px`;
   area.style.overflowY="auto";
   grid.style.setProperty("--card-width",`${width}px`);
+  applyCardMetrics(grid,width);
+}
+
+function applyCardMetrics(grid,width) {
   const scale=Math.max(.52,width/178);
   grid.style.setProperty("--card-scale",String(scale));
   const metrics={
@@ -1322,10 +1347,24 @@ function updateCardSize() {
   Object.entries(metrics).forEach(([name,value])=>grid.style.setProperty(`--${name}`,`${value*scale}px`));
 }
 
+function showFocusedCard(id){
+  const card=getCard(id),dialog=document.querySelector("#card-focus-dialog"),content=document.querySelector("#card-focus-content");
+  if(!card||slotOf(id)<0)return;
+  content.innerHTML=`<div class="card-grid focus-card-shell" style="--max-columns:1"><div class="card-slot">${renderCard(id).replace('draggable="true"','draggable="false"')}</div></div>`;
+  if(!dialog.open)dialog.showModal();
+  requestAnimationFrame(()=>{
+    const width=Math.max(178,Math.floor(Math.min(380,innerWidth-54,(innerHeight-54)*.63)));
+    const shell=content.querySelector(".focus-card-shell");
+    shell.style.setProperty("--card-width",`${width}px`);
+    applyCardMetrics(shell,width);
+  });
+}
+
 document.addEventListener("click", event => {
   const button=event.target.closest("button");
   if (button) {
     event.stopPropagation();
+    button.closest("#card-focus-dialog")?.close();
     if (button.dataset.produce) produce(Number(button.dataset.produce));
     if (button.dataset.effect) useEffect(Number(button.dataset.effect),button.dataset.effectMode||null);
     if (button.dataset.usePermanent) usePermanent(Number(button.dataset.usePermanent));
@@ -1366,13 +1405,17 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-close-choice")) { document.querySelector("#discard-choice-dialog").close(); pendingDiscard=null; }
     if (button.hasAttribute("data-close-discard-browser")) { document.querySelector("#discard-browser-dialog").close(); pendingDiscardBrowser=null; }
     if (button.hasAttribute("data-close-action-choice")) { if(!["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type)){document.querySelector("#action-choice-dialog").close(); pendingActionChoice=null;} }
-    if (button.dataset.showBanditLink) { selectedBanditLink=selectedBanditLink===Number(button.dataset.showBanditLink)?null:Number(button.dataset.showBanditLink);render(); }
     if (!button.closest("#settings-menu") && button.id!=="settings-button") hideSettingsMenu();
     return;
   }
   const linkedCard=event.target.closest?.("[data-bandit-link]");
   if(linkedCard){const linkId=Number(linkedCard.dataset.banditLink);selectedBanditLink=selectedBanditLink===linkId?null:linkId;render();return;}
   if (!event.target.closest("#settings-menu")) hideSettingsMenu();
+});
+document.addEventListener("dblclick",event=>{
+  if(event.target.closest("button, dialog"))return;
+  const card=event.target.closest("#play-area .game-card");
+  if(card)showFocusedCard(Number(card.dataset.card));
 });
 document.addEventListener("dragstart", event => {
   const card=event.target.closest?.("[data-card]");
@@ -1382,8 +1425,6 @@ document.addEventListener("dragstart", event => {
   event.dataTransfer.setData("text/plain",String(draggingId));
   requestAnimationFrame(()=>card.classList.add("dragging"));
 });
-document.addEventListener("pointerover",event=>{const link=event.target.closest?.("[data-show-bandit-link]");if(!link)return;const id=String(link.dataset.showBanditLink);document.querySelectorAll(`[data-bandit-link="${id}"]`).forEach(card=>card.classList.add("linked-highlight"));});
-document.addEventListener("pointerout",event=>{const link=event.target.closest?.("[data-show-bandit-link]");if(!link||link.contains(event.relatedTarget))return;const id=String(link.dataset.showBanditLink);document.querySelectorAll(`[data-bandit-link="${id}"]`).forEach(card=>card.classList.remove("linked-highlight"));});
 document.addEventListener("pointerover",event=>{const route=event.target.closest?.("[data-route-target]");if(!route)return;const gallery=route.closest(".stage-gallery"),target=gallery?.querySelector(`[data-stage-index="${route.dataset.routeTarget}"]`);route.closest(".stage-card")?.classList.add("route-source");target?.classList.add("route-target");});
 document.addEventListener("pointerout",event=>{const route=event.target.closest?.("[data-route-target]");if(!route||route.contains(event.relatedTarget))return;route.closest(".stage-gallery")?.querySelectorAll(".route-source,.route-target").forEach(card=>card.classList.remove("route-source","route-target"));});
 document.addEventListener("dragend", () => {
