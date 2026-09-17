@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.17.2";
+const BUILD_NUMBER = "0.17.3";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -754,6 +754,8 @@ async function queueBanditBlocks(drawnIds){
 }
 function renderActionChoice(){
   if(!pendingActionChoice)return;
+  const actionDialog=document.querySelector("#action-choice-dialog"),choiceCount=Math.max(1,pendingActionChoice.choices?.length||1);
+  actionDialog.style.setProperty("--dialog-columns",String(Math.min(maxColumns,choiceCount)));
   const topConfirmation=document.querySelector("#action-confirm-button");
   topConfirmation.hidden=true;
   topConfirmation.disabled=false;

@@ -263,3 +263,20 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
   .discover-choice-item{flex:0 0 142px;width:142px;scroll-snap-align:start}
 }
 
+/* Build 0.17.3: všechny kartové volby respektují nastavenou kapacitu řádku. */
+#action-choice-dialog:has(.discard-choices){width:min(1500px,calc(100vw - 28px))}
+#action-choice-dialog .discard-choices{display:grid;grid-template-columns:repeat(var(--dialog-columns,3),minmax(0,1fr));align-items:start;justify-content:stretch;gap:10px;width:100%}
+#action-choice-dialog .discard-choices .full-card-choice{width:100%;min-width:0;max-width:none}
+#action-choice-dialog .discard-choices .preview-card{width:100%}
+.choice-dialog .upgrade-confirm-bar,.upgrade-confirm-bar{
+  position:sticky;
+  z-index:10;
+  bottom:0;
+  width:100%;
+  margin:14px 0 0;
+  padding:13px 0 8px;
+  border-top:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(31,25,19,.08),#1f1913 24%);
+  box-shadow:0 -10px 22px rgba(0,0,0,.24);
+}
+

@@ -92,6 +92,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Build 0.17.0 opravuje posouvání dlouhých pásů karet a mobilní výšku aktivní zóny, implementuje Svatyni 082/083, přidává debug režim pro vložení libovolné karty ve zvoleném stavu a dokončuje zbývající akce pozdějších karet. Karty, které zůstávají ve hře, se v novém tahu řadí dopředu a jejich pasivní vlastnost je označena symbolem ♾️.
 - Build 0.17.1 opravuje skrytí debug tlačítka, dovoluje projít celý debug seznam a přidává rozbalovací náhled všech stavů před vložením. První řádek aktivních karet se vždy přizpůsobí dostupné výšce obrazovky.
 - Build 0.17.2 zobrazuje průzkumnické volby v jednom řádku a dovoluje před objevem prohlédnout všechny stavy každé nabízené karty. Číslo karty má 80 % velikosti textu typu.
+- Build 0.17.3 používá nastavený počet karet v řádku také ve všech výběrových dialozích. Spodní potvrzovací panel zůstává celý přichycený nad hranou dialogu.
 - Závěrečná a úvodní stránka kola jsou vertikálně rolovatelné. Úvod nového kola používá na malém displeji vodorovný pás zmenšených karet, které lze otevřít do plného detailu.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
