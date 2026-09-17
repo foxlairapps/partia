@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.16.0";
+const BUILD_NUMBER = "0.17.0";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -168,7 +168,7 @@ const templates = {
   shore:{title:"Pobřeží",kind:"Krajina",stages:[stage("Pobřeží",art("meadow",1),{coin:1},{wood:3,coin:1},0,"",[1]),stage("Loděnice",art("manor",1),{},null,3,"Vyprodukuj minci nebo dřevo.",[2],{kind:"Budova",action:"choose-production",options:["coin","wood"]}),stage("Obchodní loď",art("meadow",4),{},null,6,"Vyprodukuj minci, dřevo nebo zboží.",[3],{kind:"Námořní",action:"choose-production",options:["coin","wood","goods"]}),stage("Obchodní trasa",art("market",4),{},null,13,"Vyprodukuj minci, dřevo, kov nebo zboží. Při vyložení objev Piráta 076.",[],{kind:"Námořní",action:"choose-production",options:["coin","wood","metal","goods"],onPlay:"discover-pirate"})]},
   pirate:{title:"Pirát",kind:"Nepřítel",stages:[stage("Pirát",art("market",2),{}, {coin:4,metal:1},-2,"Sniž každé získání mincí o 1. Zaplať 1 sílu: znič Piráta a objev Lagunu 077.",[1],{stays:true,action:"defeat-pirate"}),stage("Zkušený spojenec",art("market",3),{},null,3,"Vyprodukuj sílu nebo kov; místo toho můžeš objevit Výpravu za pokladem 093.",[],{kind:"Osoba · Námořní",action:"pirate-ally"})]},
   lagoon:{title:"Laguna",kind:"Krajina",stages:[stage("Laguna",art("forest",3),{coin:1},null,0,"",[1,3]),stage("Vor",art("meadow",4),{},null,0,"",[2],{kind:"Námořní"}),stage("Bujný ostrov",art("forest",4),{goods:1,coin:2},null,1,"",[],{kind:"Krajina · Námořní"}),stage("Mořská brána",art("manor",3),{sword:1},null,3,"Zahraj námořní kartu z odhazovacího balíčku.",[],{kind:"Budova",action:"retrieve",retrieveKinds:["Námořní"]})],branchCosts:{1:{wood:3},3:{goods:1,stone:2}}},
-  shrine:{title:"Svatyně",kind:"Budova",stages:[stage("Svatyně",art("forest",1),{},{coin:3},3,"Na konci tahu odhoď: 1 jiná karta zůstane ve hře.",[1]),stage("Útočiště",art("forest",2),{},{coin:3,stone:2},5,"Na konci tahu odhoď: až 2 jiné karty zůstanou ve hře.",[2]),stage("Oratoř",art("forest",3),{},{coin:2,wood:2},6,"Na konci tahu odhoď: až 3 jiné karty zůstanou ve hře.",[3]),stage("Chrám",art("forest",4),{},null,15,"Na konci tahu odhoď: až 4 jiné karty zůstanou ve hře.",[])]},
+  shrine:{title:"Svatyně",kind:"Budova",stages:[stage("Svatyně",art("forest",1),{},{coin:3},3,"Na konci tahu odhoď: 1 jiná karta zůstane ve hře.",[1],{endTurnKeep:1}),stage("Útočiště",art("forest",2),{},{coin:3,stone:2},5,"Na konci tahu odhoď: až 2 jiné karty zůstanou ve hře.",[2],{endTurnKeep:2}),stage("Oratoř",art("forest",3),{},{coin:2,wood:2},6,"Na konci tahu odhoď: až 3 jiné karty zůstanou ve hře.",[3],{endTurnKeep:3}),stage("Chrám",art("forest",4),{},null,15,"Na konci tahu odhoď: až 4 jiné karty zůstanou ve hře.",[],{endTurnKeep:4})]},
   mine:{title:"Důl",kind:"Budova",stages:[stage("Důl",art("mountain",1),{stone:1,metal:1},{wood:3},4,"",[1]),stage("Hluboký důl",art("mountain",2),{stone:1,metal:2},{wood:3,coin:2},9,"",[2]),stage("Rubínový důl",art("mountain",3),{stone:1,metal:2,goods:1},{coin:2,wood:2,stone:2},6,"",[3]),stage("Diamantový důl",art("mountain",4),{stone:1,metal:2,goods:2},null,13,"",[])]},
   missionary:{title:"Misionář",kind:"Osoba",stages:[stage("Misionář",art("manor",1),{}, {coin:3},0,"Zaplať 3 mince a přivítej Banditu mezi své lidi.",[1],{action:"convert-bandit"}),stage("Včelař",art("meadow",3),{coin:1},{},2,"Posuň včelaření; po čtvrtém použití přidej 1 minci k produkci.",[0],{action:"beekeeper"})]},
   priest:{title:"Kněz",kind:"Osoba",stages:[stage("Kněz",art("manor",2),{}, {coin:6,goods:2},0,"Zaplať 2 mince a vylepši kartu za běžnou cenu; tah nekončí.",[1],{action:"priest-upgrade"}),stage("Kardinál",art("manor",4),{},null,5,"Vylepši kartu za běžnou cenu; tah nekončí.",[],{action:"cardinal-upgrade"})]},
@@ -273,6 +273,7 @@ let maxColumns = Number.isInteger(savedColumns)&&savedColumns>=2&&savedColumns<=
 let showCardNumbers = localStorage.getItem("patria-show-card-numbers") === "true";
 const savedProductionConfirmation=localStorage.getItem("patria-confirm-production");
 let confirmProductionSetting=savedProductionConfirmation===null?(matchMedia("(pointer: coarse)").matches||innerWidth<760):savedProductionConfirmation==="true";
+let debugMode=localStorage.getItem("patria-debug-mode")==="true";
 
 function newGame() {
   state = {
@@ -500,14 +501,37 @@ async function useEffect(id,forcedAction=null) {
     spend({coin:1}); gain({stone:2}); await animateDiscard([id]); discardCard(id); state.busy=false; render(); return;
   }
   if (action === "trade" || action === "choose-production") { state.busy=false; return showResourceChoice(id,current.options,1,{pay:action==="trade"?{coin:1}:null,discard:true}); }
+  if(action==="free-resources"){state.busy=false;return showResourceChoice(id,Object.keys(R),current.amount||1,{discard:true});}
   if (action === "jungle-wood") {
     if(!canAfford({coin:1})){state.busy=false;return notify("Chybí 1 mince.");}
     spend({coin:1});gain({wood:current.amount});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
   }
   if(action==="copy-production") { state.busy=false; return showCardTargetChoice(id,current.targetKind); }
+  if(action==="priest-upgrade"||action==="cardinal-upgrade"||action==="school-upgrade"){
+    const choices=activeIds().filter(otherId=>otherId!==id&&isFriendly(getCard(otherId))&&getStage(getCard(otherId)).next.length);
+    if(!choices.length){state.busy=false;return notify("Ve hře není karta, kterou lze vylepšit.");}
+    state.busy=false;pendingActionChoice={type:"action-upgrade",sourceId:id,choices,selectedId:null,targetState:null,extraPay:action==="priest-upgrade"?{coin:2}:null,free:action==="school-upgrade",endTurn:action==="school-upgrade",advanceSource:action==="school-upgrade"};return renderActionChoice();
+  }
+  if(action==="school-boost"){
+    const choices=activeIds().filter(otherId=>otherId!==id&&isFriendly(getCard(otherId))&&getKind(getCard(otherId)).includes("Osoba"));
+    if(!choices.length){state.busy=false;return notify("Ve hře není osoba, kterou lze posílit.");}
+    state.busy=false;pendingActionChoice={type:"school-boost",sourceId:id,choices,selectedId:null,selectedResource:null};return renderActionChoice();
+  }
+  if(action==="improve-self"){
+    state.busy=false;pendingActionChoice={type:"self-boost",sourceId:id,side:1,selectedResource:null};return renderActionChoice();
+  }
+  if(action==="pirate-ally"){
+    state.busy=false;pendingActionChoice={type:"pirate-ally",sourceId:id,mode:null};return renderActionChoice();
+  }
   if(action==="defeat-bandit") {
     const cost=current.defeatCost||1,count=current.rewardCount||2;if(!canAfford({sword:cost})){state.busy=false;return notify(`Chybí ${cost} síly.`);}
     state.busy=false;return showResourceChoice(id,Object.keys(R),count,{pay:{sword:cost},destroy:true});
+  }
+  if(action==="defeat-backstabber"){
+    if(!canAfford({sword:4})){state.busy=false;return notify("Chybí 4 síly.");}spend({sword:4});destroyCard(id);state.busy=false;render();return;
+  }
+  if(action==="defeat-pirate"){
+    if(!canAfford({sword:1})){state.busy=false;return notify("Chybí 1 síla.");}spend({sword:1});destroyCard(id);const lagoon=discoverCard(77);state.busy=false;render();if(lagoon)notify("Laguna byla objevena.");return;
   }
   if(action==="convert-bandit") {
     const missionaryId=activeIds().find(otherId=>getCard(otherId).template==="missionary"&&getCard(otherId).state===0);
@@ -530,8 +554,10 @@ async function useEffect(id,forcedAction=null) {
     card.state=0;await animateDiscard([id]);discardCard(id);state.busy=false;render();notify(`${current.future} byla objevena.`);return;
   }
   if(action==="future-discovery") {
+    const number=current.discoverNumber||Number(current.future?.match(/\d+/)?.[0]);
+    if(number===103&&getCard(103)){state.busy=false;return notify("Misionář už byl povolán.");}
     if(current.pay&&!canAfford(current.pay)){state.busy=false;return notify(`Chybí suroviny: ${formatBundle(current.pay)}.`);}
-    if(current.pay)spend(current.pay);const number=current.discoverNumber||Number(current.future?.match(/\d+/)?.[0]);if(number)discoverCard(number);await animateDiscard([id]);discardCard(id);state.busy=false;render();notify(`${current.future} přichází do tvého panství.`);return;
+    if(current.pay)spend(current.pay);if(number)discoverCard(number);await animateDiscard([id]);discardCard(id);state.busy=false;render();notify(`${current.future} přichází do tvého panství.`);return;
   }
   if(current.action==="discover-mine"||current.action==="discover-shrine") {
     state.busy=false;return showDiscoveryChoice(id,current.action==="discover-mine"?[84,85]:[82,83],{destroy:true});
@@ -579,6 +605,9 @@ async function useEffect(id,forcedAction=null) {
   if(action==="merchant-marks"){
     card.marks=(card.marks||0)+1;const rewards=["coin","wood","stone","metal"];gain({[rewards[(card.marks-1)%rewards.length]]:1});await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
   }
+  if(action==="beekeeper"){
+    card.marks=(card.marks||0)+1;if(card.marks===4){card.productionBonus??={};card.productionBonus[1]??={};card.productionBonus[1].coin=(card.productionBonus[1].coin||0)+1;notify("Včelaření dosáhlo čtvrtého stupně. Produkce vzrostla o 1 minci.");}await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
+  }
   if(action==="architect-project"){state.busy=false;return showDiscoveryChoice(id,[123,124,125],{discard:true});}
   if(action==="architect-bridge"){state.busy=false;return showDiscoveryChoice(id,[123],{discard:true});}
   if(action==="discover-reset"){const discovered=discoverCard(current.discoverNumber);card.state=0;await animateDiscard([id]);discardCard(id);state.busy=false;render();if(discovered)notify(`${getStage(discovered).name} přichází do panství.`);return;}
@@ -594,6 +623,7 @@ async function useEffect(id,forcedAction=null) {
   }
   if(action==="investment"){gain({coin:current.amount||4});if(current.next.length)card.state=current.next[0];await animateDiscard([id]);discardCard(id);state.busy=false;render();return;}
   if(action==="grow-forest"){card.state=Math.min(card.state+1,getTemplate(card).stages.length-1);await animateDiscard([id]);discardCard(id);state.busy=false;render();return;}
+  if(action==="reset-vassal"){card.state=0;await animateDiscard([id]);discardCard(id);state.busy=false;render();return;}
   if(action==="defeat-dark-prince"){
     if(!canAfford({sword:5})){state.busy=false;return notify("Chybí 5 síly.");}spend({sword:5});card.state=1;await animateDiscard([id]);discardCard(id);state.busy=false;render();return;
   }
@@ -623,7 +653,7 @@ async function useEffect(id,forcedAction=null) {
     if(choices.length<needed){state.busy=false;return notify(`Potřebuješ ${needed} ${needed===1?"osobu":"osoby"}.`);}state.busy=false;pendingActionChoice={type:"sacrifice",sourceId:id,choices,selected:[],count:needed,transform:witchMode};return renderActionChoice();
   }
   state.busy=false;
-  notify("Tento efekt bude doplněn v další části prototypu.");
+  notify("Tuto akci teď nelze provést.");
 }
 
 function renderDiscardChoice() {
@@ -747,6 +777,22 @@ function renderActionChoice(){
   } else if(pendingActionChoice.type==="decree") {
     const choice=pendingActionChoice,selected=choice.selectedId?getCard(choice.selectedId):null,resources=selected?Object.keys(getProduction(selected)).filter(key=>getProduction(selected)[key]>0):[];
     openActionChoice(`<div class="dialog-header"><span class="eyebrow">Nové období</span><h2>${choice.step==="land"?"Úrodná půda":"Efektivita"}</h2><p>${choice.step==="land"?"Vyber krajinu, která bude odteď produkovat navíc 1 minci.":"Vyber budovu a surovinu, jejíž produkci trvale zvýšíš o 1."}</p></div><div class="discard-choices">${choice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${id===choice.selectedId?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div>${choice.step==="building"&&selected?`<div class="resource-choice-grid decree-resources">${resources.map(key=>`<button class="${choice.selectedResource===key?"selected":""}" data-pick-resource="${key}" type="button">${R[key].icon}<span>${R[key].label}</span></button>`).join("")}</div>`:""}<div class="upgrade-confirm-bar"><button class="upgrade-action" data-confirm-action-choice type="button" ${!choice.selectedId||(choice.step==="building"&&!choice.selectedResource)?"disabled":""}>Potvrdit posílení</button></div>`);
+  } else if(pendingActionChoice.type==="action-upgrade") {
+    const choice=pendingActionChoice;
+    const options=choice.choices.flatMap(id=>{const card=getCard(id);return getStage(card).next.map(target=>({id,target,card}));});
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Vylepšení kartou</span><h2>Kterou kartu vylepšíš?</h2><p>${choice.free?"Běžnou cenu tentokrát neplatíš.":choice.extraPay?`Navíc zaplatíš ${formatBundle(choice.extraPay)}.`:"Zaplatíš běžnou cenu vylepšení."}</p></div><div class="discard-choices">${options.map(option=>{const selected=choice.selectedId===option.id&&choice.targetState===option.target;const cost=choice.free?{}:upgradeCost(option.card,option.target),total={...cost};Object.entries(choice.extraPay||{}).forEach(([key,value])=>total[key]=(total[key]||0)+value);return `<button class="full-card-choice ${selected?"selected":""}" data-select-action-upgrade="${option.id}:${option.target}" type="button" ${canAfford(total)?"":"disabled"}>${renderPreviewCard(option.card,option.target)}</button>`;}).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${choice.selectedId===null?"disabled":""}>Potvrdit</button></div>`);
+  } else if(pendingActionChoice.type==="school-boost") {
+    const choice=pendingActionChoice;
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Škola</span><h2>Posil produkci osoby</h2><p>Vyber osobu a surovinu, kterou bude navíc produkovat.</p></div><div class="discard-choices">${choice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${choice.selectedId===id?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div><div class="resource-choice-grid decree-resources">${Object.keys(R).map(key=>`<button class="${choice.selectedResource===key?"selected":""}" data-pick-resource="${key}" type="button">${R[key].icon}<span>${R[key].label}</span></button>`).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${choice.selectedId&&choice.selectedResource?"":"disabled"}>Potvrdit</button></div>`);
+  } else if(pendingActionChoice.type==="self-boost") {
+    const choice=pendingActionChoice,card=getCard(choice.sourceId);
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Domnělý šlechtic</span><h2>Posil jednu stranu karty</h2></div><div class="discard-choices">${[1,2].map(side=>`<button class="full-card-choice ${choice.side===side?"selected":""}" data-select-self-side="${side}" type="button">${renderPreviewCard(card,side)}</button>`).join("")}</div><div class="resource-choice-grid decree-resources">${Object.keys(R).map(key=>`<button class="${choice.selectedResource===key?"selected":""}" data-pick-resource="${key}" type="button">${R[key].icon}<span>${R[key].label}</span></button>`).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${choice.selectedResource?"":"disabled"}>Potvrdit</button></div>`);
+  } else if(pendingActionChoice.type==="pirate-ally") {
+    const choice=pendingActionChoice,treasureAvailable=!getCard(93);
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Zkušený spojenec</span><h2>Jak využiješ jeho zkušenosti?</h2></div><div class="column-options pirate-options"><button data-pirate-mode="sword" class="${choice.mode==="sword"?"selected":""}" type="button">⚔️ 1 síla</button><button data-pirate-mode="metal" class="${choice.mode==="metal"?"selected":""}" type="button">⚙️ 1 kov</button><button data-pirate-mode="treasure" class="${choice.mode==="treasure"?"selected":""}" type="button" ${treasureAvailable?"":"disabled"}>Objevit Výpravu za pokladem</button></div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${choice.mode?"":"disabled"}>Potvrdit</button></div>`);
+  } else if(pendingActionChoice.type==="shrine-stay") {
+    const choice=pendingActionChoice;
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Svatyně</span><h2>Které karty zůstanou do příštího tahu?</h2><p>Můžeš ponechat až ${choice.count}. Nevybrané karty se odhodí obvyklým způsobem.</p></div><div class="discard-choices">${choice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${choice.selected.includes(id)?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div><div class="upgrade-confirm-bar"><button class="upgrade-action" data-confirm-action-choice type="button">${choice.selected.length?`Ponechat vybrané (${choice.selected.length})`:"Neponechat žádnou"}</button></div>`);
   } else if(["forced-discard","princess-education","princess-turn"].includes(pendingActionChoice.type)) {
     const choice=pendingActionChoice,counts=choice.type==="princess-education"?Object.fromEntries(Object.keys(choice.requirements).map(kind=>[kind,choice.selected.filter(id=>getKind(getCard(id)).includes(kind)).length])):{};
     const valid=choice.type!=="princess-education"?choice.selected.length===choice.count:Object.entries(choice.requirements).every(([kind,count])=>(counts[kind]||0)===count)&&choice.selected.length===Object.values(choice.requirements).reduce((a,b)=>a+b,0);
@@ -780,10 +826,10 @@ function renderActionChoice(){
     openActionChoice(`<div class="dialog-header"><span class="eyebrow">${blocking?"Bandita":"Volba karty"}</span><h2>${blocking?"Kterou kartu Bandita zablokuje?":"Kterou produkci chceš získat?"}</h2></div><div class="discard-choices">${pendingActionChoice.choices.map(id=>{const card=getCard(id);return `<button class="full-card-choice ${id===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${id}" type="button">${renderPreviewCard(card,card.state)}</button>`}).join("")}</div>${blocking?"":`<div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button">Použít produkci</button></div>`}`);
   }
 }
-function pickResource(key){if(pendingActionChoice?.type==="reduce-upgrade"){const target=getCard(pendingActionChoice.selectedId),cost=target?upgradeCost(target,getStage(target).next[0]):{};if(cost?.[key]){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(pendingActionChoice?.type==="export"&&pendingActionChoice.config.resources?.includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();return;}if(pendingActionChoice?.type==="decree"&&pendingActionChoice.step==="building"){if(Object.keys(getProduction(getCard(pendingActionChoice.selectedId))).includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(!pendingActionChoice||!["resources","inventor"].includes(pendingActionChoice.type)||pendingActionChoice.type==="inventor"&&pendingActionChoice.mode!=="resources"||!pendingActionChoice.options.includes(key)||pendingActionChoice.selected.length>=pendingActionChoice.count)return;pendingActionChoice.selected.push(key);renderActionChoice();}
-function selectActionCard(id){if(!pendingActionChoice?.choices?.includes(id))return;if(["sacrifice","round-destruction","forced-discard","princess-education","princess-turn"].includes(pendingActionChoice.type)){const index=pendingActionChoice.selected.indexOf(id);if(index>=0)pendingActionChoice.selected.splice(index,1);else if(!pendingActionChoice.count||pendingActionChoice.selected.length<pendingActionChoice.count)pendingActionChoice.selected.push(id);}else pendingActionChoice.selectedId=id;if(["decree","export","reduce-upgrade"].includes(pendingActionChoice.type))pendingActionChoice.selectedResource=null;renderActionChoice();}
+function pickResource(key){if(["school-boost","self-boost"].includes(pendingActionChoice?.type)&&R[key]){pendingActionChoice.selectedResource=key;renderActionChoice();return;}if(pendingActionChoice?.type==="reduce-upgrade"){const target=getCard(pendingActionChoice.selectedId),cost=target?upgradeCost(target,getStage(target).next[0]):{};if(cost?.[key]){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(pendingActionChoice?.type==="export"&&pendingActionChoice.config.resources?.includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();return;}if(pendingActionChoice?.type==="decree"&&pendingActionChoice.step==="building"){if(Object.keys(getProduction(getCard(pendingActionChoice.selectedId))).includes(key)){pendingActionChoice.selectedResource=key;renderActionChoice();}return;}if(!pendingActionChoice||!["resources","inventor"].includes(pendingActionChoice.type)||pendingActionChoice.type==="inventor"&&pendingActionChoice.mode!=="resources"||!pendingActionChoice.options.includes(key)||pendingActionChoice.selected.length>=pendingActionChoice.count)return;pendingActionChoice.selected.push(key);renderActionChoice();}
+function selectActionCard(id){if(!pendingActionChoice?.choices?.includes(id))return;if(["sacrifice","round-destruction","forced-discard","princess-education","princess-turn","shrine-stay"].includes(pendingActionChoice.type)){const index=pendingActionChoice.selected.indexOf(id);if(index>=0)pendingActionChoice.selected.splice(index,1);else if(!pendingActionChoice.count||pendingActionChoice.selected.length<pendingActionChoice.count)pendingActionChoice.selected.push(id);}else pendingActionChoice.selectedId=id;if(["decree","export","reduce-upgrade"].includes(pendingActionChoice.type))pendingActionChoice.selectedResource=null;renderActionChoice();}
 async function confirmActionChoice(){
-  if(!pendingActionChoice||(state.busy&&!["decree","export","permanent-intro","princess-turn","round-destruction"].includes(pendingActionChoice.type)))return;
+  if(!pendingActionChoice||(state.busy&&!["decree","export","permanent-intro","princess-turn","shrine-stay","round-destruction"].includes(pendingActionChoice.type)))return;
   const choice=pendingActionChoice;
   if(choice.type==="permanent-intro"){
     state.permanentIntroQueue.shift();document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;showPermanentIntro();return;
@@ -807,10 +853,26 @@ async function confirmActionChoice(){
   if(choice.type==="princess-turn"){
     if(choice.selected.length!==choice.count)return;choice.selected.forEach(discardCard);document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;render();const resolve=pendingTurnResolve;pendingTurnResolve=null;resolve?.();return;
   }
+  if(choice.type==="shrine-stay"){
+    const selected=[...choice.selected];document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;render();const resolve=pendingTurnResolve;pendingTurnResolve=null;resolve?.(selected);return;
+  }
+  const source=getCard(choice.sourceId);
+  if(choice.type==="action-upgrade"){
+    if(choice.selectedId===null||choice.targetState===null)return;const target=getCard(choice.selectedId),normal=choice.free?{}:upgradeCost(target,choice.targetState),total={...normal};Object.entries(choice.extraPay||{}).forEach(([key,value])=>total[key]=(total[key]||0)+value);if(!canAfford(total))return;spend(total);target.state=choice.targetState;if(choice.advanceSource&&getStage(source).next.length)source.state=getStage(source).next[0];document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;await animateDiscard([source.id,target.id]);discardCard(source.id);discardCard(target.id);state.busy=false;render();if(choice.endTurn)return endTurn(true);return;
+  }
+  if(choice.type==="school-boost"){
+    if(!choice.selectedId||!choice.selectedResource)return;const target=getCard(choice.selectedId);target.productionBonus??={};target.productionBonus[target.state]??={};target.productionBonus[target.state][choice.selectedResource]=(target.productionBonus[target.state][choice.selectedResource]||0)+1;if(getStage(source).next.length)source.state=getStage(source).next[0];document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;await animateDiscard([source.id]);discardCard(source.id);state.busy=false;render();return endTurn(true);
+  }
+  if(choice.type==="self-boost"){
+    if(!choice.selectedResource)return;source.productionBonus??={};source.productionBonus[choice.side]??={};source.productionBonus[choice.side][choice.selectedResource]=(source.productionBonus[choice.side][choice.selectedResource]||0)+1;document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;await animateDiscard([source.id]);discardCard(source.id);state.busy=false;render();return;
+  }
+  if(choice.type==="pirate-ally"){
+    if(!choice.mode)return;if(choice.mode==="treasure")discoverCard(93);else gain({[choice.mode]:1});document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;await animateDiscard([source.id]);discardCard(source.id);state.busy=false;render();return;
+  }
   if(choice.type==="assassination"){
     if(!choice.selectedId)return;const assassin=getCard(choice.sourceId);destroyCard(choice.selectedId);if(assassin)assassin.triggered=true;document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;render();queueBanditBlocks(choice.remainingBandits||[]);return;
   }
-  const source=getCard(choice.sourceId);if(!source||slotOf(source.id)<0)return;
+  if(!source||(slotOf(source.id)<0&&!choice.after?.keepSource))return;
   if(choice.type==="forced-discard"){
     if(choice.selected.length!==choice.count)return;document.querySelector("#action-choice-dialog").close();pendingActionChoice=null;state.busy=true;await animateDiscard(choice.selected);choice.selected.forEach(discardCard);state.busy=false;render();queueBanditBlocks(choice.remainingBandits||[]);return;
   }
@@ -868,6 +930,7 @@ async function confirmActionChoice(){
   if(choice.after?.pay)spend(choice.after.pay);
   if(choice.type==="resources")choice.selected.forEach(key=>gain({[key]:1}));
   else gain(getProduction(getCard(choice.selectedId)));
+  if(choice.after?.keepSource){state.busy=false;render();return;}
   const extraDiscard=choice.after?.extraDiscard;await animateDiscard(extraDiscard?[source.id,extraDiscard]:[source.id]);if(extraDiscard)discardCard(extraDiscard);
   if(choice.after?.destroy)destroyCard(source.id);else discardCard(source.id);
   state.busy=false;render();
@@ -933,19 +996,35 @@ async function upgrade(id, target) {
 async function endTurn(upgraded = false) {
   state.busy=true;
   await resolvePrincessEndTurn();
+  const shrineProtected=await resolveShrineEndTurn();
   const staying=[];
   const leaving=[];
   for (const id of activeIds()) {
     const card=getCard(id);
-    if (getStage(card).stays) staying.push(id);
+    if (getStage(card).stays||shrineProtected.includes(id)) staying.push(id);
     else leaving.push(id);
   }
   await animateDiscard(leaving);
   leaving.forEach(discardCard);
+  if(staying.length){
+    state.slots=[...staying,...Array(Math.max(0,state.slots.length-staying.length)).fill(null)].slice(0,state.slots.length);
+  }
   state.resources=emptyResources();
   state.inactive=new Set();
   if (state.deck.length === 0) await endRound();
   else { state.busy=false; startTurn(true); }
+}
+
+async function resolveShrineEndTurn(){
+  const shrine=activeIds().map(getCard).find(card=>card&&getStage(card).endTurnKeep);
+  if(!shrine)return [];
+  const choices=activeIds().filter(id=>id!==shrine.id&&isFriendly(getCard(id))&&!isBlocked(id));
+  if(!choices.length)return [];
+  return new Promise(resolve=>{
+    pendingTurnResolve=resolve;
+    pendingActionChoice={type:"shrine-stay",sourceId:shrine.id,choices,selected:[],count:Math.min(getStage(shrine).endTurnKeep,choices.length)};
+    renderActionChoice();
+  });
 }
 
 async function resolvePrincessEndTurn(){
@@ -1108,6 +1187,32 @@ function showCardList(){
   const dialog=document.querySelector("#card-list-dialog");if(!dialog.open)dialog.showModal();
 }
 
+function showDebugCardPicker(){
+  hideSettingsMenu();
+  const rows=implementedCardSpecs().map(([number,template])=>{
+    const item=templates[template],search=`${String(number).padStart(3,"0")} ${item.title} ${item.kind}`.toLocaleLowerCase("cs");
+    return `<section class="debug-card-row" data-debug-search="${search}"><div><strong>(${String(number).padStart(3,"0")}) ${item.title}</strong><small>${item.kind}</small></div><select data-debug-state aria-label="Stav karty ${item.title}">${item.stages.map((stage,index)=>`<option value="${index}">${String.fromCharCode(65+index)} · ${stage.name}</option>`).join("")}</select><button class="upgrade-action" data-debug-add-card="${number}" type="button">Vložit</button></section>`;
+  }).join("");
+  document.querySelector("#debug-card-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Debug mód</span><h2>Vložit kartu do hry</h2><p>Vyber kartu a její stav. Karta se vloží do první volné pozice.</p></div><input id="debug-card-search" class="debug-card-search" type="search" placeholder="Hledat podle čísla nebo názvu…" autocomplete="off"><div class="debug-card-list">${rows}</div>`;
+  const dialog=document.querySelector("#debug-card-dialog");if(!dialog.open)dialog.showModal();
+  requestAnimationFrame(()=>document.querySelector("#debug-card-search")?.focus());
+}
+
+function addDebugCard(number,stageIndex){
+  const template=implementedCardSpecs().find(([id])=>id===number)?.[1];if(!template)return;
+  const isPermanent=[25,26,27,38,39,40,87,88,90,91,108,117].includes(number);
+  let id=number;if(getCard(id)){id=1000;while(getCard(id))id+=1;}
+  const card={id,number,template,state:Math.max(0,Math.min(Number(stageIndex)||0,templates[template].stages.length-1))};
+  if(isPermanent){card.permanent=true;card.value=0;card.marks=0;state.permanents.push(card);}
+  else{
+    const slot=firstEmptySlot();if(slot<0)return notify("V aktivní zóně není volná pozice.");
+    state.cards.push(card);state.slots[slot]=id;
+  }
+  document.querySelector("#debug-card-dialog").close();render();autosave("turn");
+  if(!isPermanent){animateDeal([id]);queueBanditBlocks([id]);}
+  notify(`Karta ${String(number).padStart(3,"0")} byla vložena do hry.`);
+}
+
 function advance() {
   if (state.busy || !state.deck.length) return;
   if(activeIds().some(id=>{const card=getCard(id);return card.template==="darkKnight"&&card.state===0||getStage(card).advanceLock||getStage(card).landCoinAura;}))return notify("Tato karta nyní brání dalšímu dobírání.");
@@ -1230,6 +1335,7 @@ function renderDialog() {
 
 function renderPermanentDialog(card){
   const track=PERMANENT_TRACKS[card.number],template=getTemplate(card),icon=permanentIcon(card.number);
+  if(card.number===117){document.querySelector("#card-dialog-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Permanentní</span><h2>Obchodní vztahy</h2><p>Utrať 3 zboží a získej libovolnou jednu surovinu.</p></div><div class="permanent-summary"><span>Zásoba <strong>${expandedBundle({goods:state.resources.goods})}</strong></span><button class="upgrade-action" data-use-trade-relations="${card.id}" type="button" ${canAfford({goods:3})?"":"disabled"}>Vyměnit 3 zboží</button></div>`;return;}
   if(!track){document.querySelector("#card-dialog-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Permanentní</span><h2>${template.title}</h2></div><p>${getStage(card).effect}</p>`;return;}
   const isExport=card.number===27;
   const rows=isExport?track.thresholds.map((threshold,index)=>`<div class="track-row ${card.value>=threshold?"reached":""} ${card.claimed?.includes(threshold)?"claimed":""}"><span>${card.value>=threshold?"✓":"○"}</span><strong>${icon} ${threshold}</strong><em>${track.labels[index]}</em></div>`).join(""):track.costs.map((cost,index)=>`<div class="track-row ${card.marks>index?"reached":""}"><span>${card.marks>index?"✓":"○"}</span><strong>${R[track.resource].icon} ${cost}</strong><em>🏆 ${track.rewards[index]}</em></div>`).join("");
@@ -1247,13 +1353,21 @@ async function usePermanent(id){
   card.state=card.marks>=track.flipAfter?1:0;document.querySelector("#card-dialog").close();render();await endTurn(false);
 }
 
+function useTradeRelations(id){
+  const card=getCard(id);if(!card||card.number!==117||!canAfford({goods:3}))return;document.querySelector("#card-dialog").close();showResourceChoice(id,Object.keys(R),1,{pay:{goods:3},keepSource:true});
+}
+
 function effectAvailable(card) {
-  return !isBlocked(card)&&Boolean(getStage(card).action);
+  const current=getStage(card);
+  if(current.discoverNumber===103&&getCard(103))return false;
+  return !isBlocked(card)&&Boolean(current.action);
 }
 
 function ruleVisible(template,stateIndex) {
   return Boolean(templates[template].stages[stateIndex].effect);
 }
+
+function ruleIcon(stageData){return stageData.stays?"♾️":"⚡";}
 
 function stagePips(template,currentIndex,interactiveId=null) {
   const content=template.stages.map((_,i)=>`<span class="${i===currentIndex?"active":""}"></span>`).join("");
@@ -1273,7 +1387,7 @@ function renderPreviewCard(card,stageIndex,showRoutes=false) {
     <img class="card-art-full" src="${cardAsset(card,stageIndex)}" alt="" draggable="false"><div class="card-shade" aria-hidden="true"></div>
     ${renderCardHeader(card,template,current,stageIndex)}
     ${hasProduction?`<div class="production-space static-production">${productionIcons(production)}</div>`:""}
-    ${ruleVisible(card.template,stageIndex)?`<div class="effect-panel">⚡ ${current.effect}</div>`:""}
+    ${ruleVisible(card.template,stageIndex)?`<div class="effect-panel">${ruleIcon(current)} ${current.effect}</div>`:""}
     ${current.next.length?`<div class="upgrade-panel static-upgrade"><div class="upgrade-lines">${previewUpgrades}</div></div>`:""}
   </article>`;
 }
@@ -1297,7 +1411,7 @@ function renderCard(id) {
     ${renderCardHeader(card,template,current,card.state,id)}
     ${state.blocked[id]?`<div class="bandit-mark" aria-label="Tuto kartu blokuje Bandita"><span>Blokováno</span></div>`:""}
     ${hasProduction?`<button class="production-space" data-produce="${id}" type="button" aria-label="Použít produkci: ${formatBundle(production)}" ${state.blocked[id]?"disabled":""}>${productionIcons(production)}</button>`:""}
-    ${isBandit?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="defeat-bandit" type="button" ${canAfford({sword:banditCost})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="convert-bandit" type="button" ${missionaryReady?"":"disabled"}>🤝 Přivítat</button></div></div>`:isWitch?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="${card.state===0?"defeat-witch":"defeat-witch-hut"}" type="button" ${canAfford({sword:card.state===0?4:3})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="${card.state===0?"soothe-witch":"sacrifice-witch-hut"}" type="button">👤 ${card.state===0?"Uklidnit":"Obětovat"}</button></div></div>`:ruleVisible(card.template,card.state)?effectIsActive?`<button class="effect-panel active-effect" data-effect="${id}" type="button">⚡ ${current.effect}</button>`:`<div class="effect-panel">⚡ ${current.effect}</div>`:""}
+    ${isBandit?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="defeat-bandit" type="button" ${canAfford({sword:banditCost})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="convert-bandit" type="button" ${missionaryReady?"":"disabled"}>🤝 Přivítat</button></div></div>`:isWitch?`<div class="effect-panel bandit-actions"><span>⚡ Zvol akci</span><div><button data-effect="${id}" data-effect-mode="${card.state===0?"defeat-witch":"defeat-witch-hut"}" type="button" ${canAfford({sword:card.state===0?4:3})?"":"disabled"}>⚔️ Porazit</button><button data-effect="${id}" data-effect-mode="${card.state===0?"soothe-witch":"sacrifice-witch-hut"}" type="button">👤 ${card.state===0?"Uklidnit":"Obětovat"}</button></div></div>`:ruleVisible(card.template,card.state)?effectIsActive?`<button class="effect-panel active-effect" data-effect="${id}" type="button">${ruleIcon(current)} ${current.effect}</button>`:`<div class="effect-panel">${ruleIcon(current)} ${current.effect}</div>`:""}
     ${next.length?`<button class="upgrade-panel" data-upgrade-preview="${id}" type="button" aria-label="Vylepšit za ${upgradeAria}" ${affordableTargets.length?"":"disabled"}><div class="upgrade-lines">${upgradeRows}</div></button>`:""}
   </article>`;
 }
@@ -1331,6 +1445,9 @@ function render() {
   requestAnimationFrame(updateCardSize);
   document.querySelector("#empty-state").hidden=activeIds().length>0;
   document.querySelector("#advance-button").disabled=state.busy||state.deck.length===0||firstEmptySlot()<0;
+  document.querySelector("#advance-button").hidden=debugMode;
+  document.querySelector("#debug-add-button").hidden=!debugMode;
+  document.querySelector("#debug-add-button").disabled=state.busy||firstEmptySlot()<0;
   document.querySelector("#pass-button").disabled=state.busy;
 }
 
@@ -1342,7 +1459,8 @@ function updateCardSize() {
   const bottomSpace=38;
   const ratio=5/8;
   const horizontal=Math.floor((area.clientWidth-4-(columns-1)*gap)/columns);
-  const availableHeight=Math.max(120,area.parentElement.clientHeight);
+  const parent=area.parentElement,parentStyle=getComputedStyle(parent);
+  const availableHeight=Math.max(120,parent.clientHeight-(parseFloat(parentStyle.paddingTop)||0)-(parseFloat(parentStyle.paddingBottom)||0));
   const visibleRows=Math.max(1,Math.ceil(grid.children.length/columns));
   let width=Math.max(24,horizontal);
   const idealCardHeight=width/ratio;
@@ -1357,6 +1475,7 @@ function updateCardSize() {
     }
   }
   area.style.height=`${availableHeight}px`;
+  area.style.maxHeight=`${availableHeight}px`;
   area.style.overflowY="auto";
   grid.style.setProperty("--card-width",`${width}px`);
   applyCardMetrics(grid,width);
@@ -1396,12 +1515,16 @@ document.addEventListener("click", event => {
     if (button.dataset.produce) produce(Number(button.dataset.produce));
     if (button.dataset.effect) useEffect(Number(button.dataset.effect),button.dataset.effectMode||null);
     if (button.dataset.usePermanent) usePermanent(Number(button.dataset.usePermanent));
+    if (button.dataset.useTradeRelations) useTradeRelations(Number(button.dataset.useTradeRelations));
     if (button.dataset.upgradePreview) showUpgradeChoice(Number(button.dataset.upgradePreview),button.dataset.target===undefined?null:Number(button.dataset.target));
     if (button.dataset.selectUpgrade) selectUpgradeTarget(Number(button.dataset.selectUpgrade));
     if (button.dataset.selectDiscard) selectDiscardCard(Number(button.dataset.selectDiscard));
     if (button.dataset.selectRetrieve) selectRetrieveCard(Number(button.dataset.selectRetrieve));
     if (button.dataset.pickResource) pickResource(button.dataset.pickResource);
     if (button.dataset.selectActionCard) selectActionCard(Number(button.dataset.selectActionCard));
+    if (button.dataset.selectActionUpgrade&&pendingActionChoice?.type==="action-upgrade") {const [cardId,target]=button.dataset.selectActionUpgrade.split(":").map(Number);pendingActionChoice.selectedId=cardId;pendingActionChoice.targetState=target;renderActionChoice();}
+    if (button.dataset.selectSelfSide&&pendingActionChoice?.type==="self-boost") {pendingActionChoice.side=Number(button.dataset.selectSelfSide);renderActionChoice();}
+    if (button.dataset.pirateMode&&pendingActionChoice?.type==="pirate-ally") {pendingActionChoice.mode=button.dataset.pirateMode;renderActionChoice();}
     if (button.dataset.chooseSide) chooseDiscoveredSide(Number(button.dataset.chooseSide),Number(button.dataset.side));
     if (button.dataset.chooseImmigrant) chooseImmigrant(Number(button.dataset.chooseImmigrant));
     if (button.dataset.markCount&&pendingActionChoice?.type==="mercenary") { pendingActionChoice.markCount=Number(button.dataset.markCount);renderActionChoice(); }
@@ -1416,6 +1539,8 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-final-new-game")){document.querySelector("#round-transition").hidden=true;startFromWelcome();}
     if (button.hasAttribute("data-open-library")) showLibrary();
     if (button.hasAttribute("data-close-card-list")) document.querySelector("#card-list-dialog").close();
+    if (button.hasAttribute("data-close-debug-cards")) document.querySelector("#debug-card-dialog").close();
+    if (button.dataset.debugAddCard) {const row=button.closest(".debug-card-row"),stage=Number(row?.querySelector("[data-debug-state]")?.value||0);addDebugCard(Number(button.dataset.debugAddCard),stage);}
     if (button.dataset.exportReward) claimExportReward(Number(button.dataset.exportReward));
     if (button.hasAttribute("data-prepare-round")) prepareNextRound();
     if (button.hasAttribute("data-shuffle-round")) shuffleAndStartRound();
@@ -1426,7 +1551,7 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-close-upgrade")) closeDialogs();
     if (button.hasAttribute("data-close-choice")) { document.querySelector("#discard-choice-dialog").close(); pendingDiscard=null; }
     if (button.hasAttribute("data-close-discard-browser")) { document.querySelector("#discard-browser-dialog").close(); pendingDiscardBrowser=null; }
-    if (button.hasAttribute("data-close-action-choice")) { if(!["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type)){document.querySelector("#action-choice-dialog").close(); pendingActionChoice=null;} }
+    if (button.hasAttribute("data-close-action-choice")) { if(!["block","decree","volcano","permanent-intro","side-choice","shrine-stay"].includes(pendingActionChoice?.type)){document.querySelector("#action-choice-dialog").close(); pendingActionChoice=null;} }
     if (!button.closest("#settings-menu") && button.id!=="settings-button") hideSettingsMenu();
     return;
   }
@@ -1477,6 +1602,7 @@ document.addEventListener("drop", event => {
   draggingId=null;
 });
 document.querySelector("#advance-button").addEventListener("click",advance);
+document.querySelector("#debug-add-button").addEventListener("click",showDebugCardPicker);
 document.querySelector("#pass-button").addEventListener("click",()=>{if(!state.busy)endTurn(false);});
 document.querySelector("#restart-button").addEventListener("click",()=>{closeDialogs();showWelcome();});
 document.querySelector("#start-game-button").addEventListener("click",startFromWelcome);
@@ -1496,20 +1622,24 @@ document.querySelector("#settings-button").addEventListener("click",event=>{
   document.querySelector("#column-count-value").value=String(maxColumns);
   document.querySelector("#show-card-numbers").checked=showCardNumbers;
   document.querySelector("#confirm-production").checked=confirmProductionSetting;
+  document.querySelector("#debug-mode").checked=debugMode;
 });
 document.querySelector("#show-card-numbers").addEventListener("change",event=>{showCardNumbers=event.target.checked;localStorage.setItem("patria-show-card-numbers",String(showCardNumbers));render();});
 document.querySelector("#confirm-production").addEventListener("change",event=>{confirmProductionSetting=event.target.checked;localStorage.setItem("patria-confirm-production",String(confirmProductionSetting));});
+document.querySelector("#debug-mode").addEventListener("change",event=>{debugMode=event.target.checked;localStorage.setItem("patria-debug-mode",String(debugMode));render();});
+document.addEventListener("input",event=>{if(event.target.id!=="debug-card-search")return;const query=event.target.value.trim().toLocaleLowerCase("cs");document.querySelectorAll(".debug-card-row").forEach(row=>row.hidden=query&&!row.dataset.debugSearch.includes(query));});
 document.querySelector("#column-count").addEventListener("input",event=>{maxColumns=Math.max(2,Math.min(8,Number(event.target.value)||6));document.querySelector("#column-count-value").value=String(maxColumns);localStorage.setItem("patria-max-columns",String(maxColumns));render();});
 document.querySelector("#discard-pile").addEventListener("click",()=>showDiscardBrowser());
 document.querySelectorAll("dialog").forEach(dialog=>{
-  dialog.addEventListener("cancel",event=>{if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type))event.preventDefault();});
-  dialog.addEventListener("click",event=>{if(event.target===dialog){if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type))return;dialog.close();if(dialog.id==="discard-choice-dialog")pendingDiscard=null;if(dialog.id==="upgrade-dialog")pendingUpgrade=null;if(dialog.id==="discard-browser-dialog")pendingDiscardBrowser=null;if(dialog.id==="action-choice-dialog")pendingActionChoice=null;if(dialog.id==="library-dialog")document.querySelector("#round-transition")?.classList.remove("behind-dialog");}});
+  dialog.addEventListener("cancel",event=>{if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice","shrine-stay"].includes(pendingActionChoice?.type))event.preventDefault();});
+  dialog.addEventListener("click",event=>{if(event.target===dialog){if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice","shrine-stay"].includes(pendingActionChoice?.type))return;dialog.close();if(dialog.id==="discard-choice-dialog")pendingDiscard=null;if(dialog.id==="upgrade-dialog")pendingUpgrade=null;if(dialog.id==="discard-browser-dialog")pendingDiscardBrowser=null;if(dialog.id==="action-choice-dialog")pendingActionChoice=null;if(dialog.id==="library-dialog")document.querySelector("#round-transition")?.classList.remove("behind-dialog");}});
   dialog.addEventListener("close",()=>{if(dialog.id==="library-dialog")document.querySelector("#round-transition")?.classList.remove("behind-dialog");});
 });
 window.addEventListener("resize",updateCardSize);
 
 document.querySelector("#show-card-numbers").checked=showCardNumbers;
 document.querySelector("#confirm-production").checked=confirmProductionSetting;
+document.querySelector("#debug-mode").checked=debugMode;
 document.querySelector("#column-count").value=String(maxColumns);
 document.querySelector("#column-count-value").value=String(maxColumns);
 document.querySelector("#build-number").textContent=BUILD_NUMBER;

@@ -213,3 +213,40 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 .phase-shuffle{display:flex;align-items:center;justify-content:center}
 .phase-shuffle .round-transition-copy,.phase-shuffle .shuffle-cards{align-self:center;margin-inline:auto}
 
+/* Build 0.17: bezpečné rolování pásů, mobilní herní plocha a debug výběr. */
+.table-area{display:flex;min-height:0;overflow:hidden}
+.board-scroll{flex:1 1 auto;min-width:0;min-height:0;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.round-new-cards{
+  justify-content:safe center;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding-inline:12px 24px;
+  scroll-padding-inline:12px 24px;
+  overscroll-behavior-x:contain;
+  touch-action:pan-x;
+  -webkit-overflow-scrolling:touch;
+}
+.round-new-cards>*{flex:0 0 auto}
+.card-list-dialog{overflow-x:hidden;scrollbar-gutter:stable}
+.card-list-content,.card-list-row{min-width:0;max-width:100%}
+.card-list-row{overflow:hidden}
+.card-list-states{width:100%;max-width:100%;padding-right:18px;scroll-padding-inline:2px 18px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.debug-card-dialog{width:min(760px,calc(100vw - 24px));max-height:min(88vh,900px);padding:22px;overflow:hidden}
+.debug-card-search{width:100%;margin-bottom:12px;padding:11px 13px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:#17130f;font:inherit}
+.debug-card-list{display:grid;gap:7px;max-height:calc(88vh - 180px);overflow-y:auto;padding-right:4px}
+.debug-card-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) 92px;align-items:center;gap:9px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#201a14}
+.debug-card-row>div{display:grid;min-width:0}.debug-card-row strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.debug-card-row small{color:var(--muted)}
+.debug-card-row select{min-width:0;padding:9px;color:var(--ink);border:1px solid var(--line);border-radius:7px;background:#17130f}
+.debug-add{font-size:1.2rem}
+@media(max-width:900px){.round-new-cards{justify-content:flex-start}}
+@media(max-width:680px){
+  .card-list-dialog{width:calc(100vw - 8px);padding:14px 6px}
+  .card-list-row{grid-template-columns:minmax(0,1fr);gap:7px;padding:8px}
+  .card-list-number{padding:2px 3px}
+  .card-list-states .preview-card{flex-basis:145px;width:145px}
+  .debug-card-dialog{padding:14px 8px}
+  .debug-card-row{grid-template-columns:minmax(0,1fr) 82px;gap:6px}
+  .debug-card-row>div{grid-column:1/-1}.debug-card-row select{font-size:.75rem}.debug-card-row button{min-width:0;padding-inline:8px}
+}
+
