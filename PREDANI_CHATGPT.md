@@ -8,7 +8,7 @@ Pracujeme na webové karetní hře Patria, inspirované principem hry Kingdom Le
 
 Hra je částečný deckbuilding o budování panství. Neexistuje prohra; cílem jsou vítězné body. Každá karta má až čtyři samostatně zobrazované stavy a může mít lineární nebo větvený vývoj.
 
-Aktuální verze je čistá statická aplikace v `index.html`, `styles.css` a `app.js`. Nemá framework ani sestavovací krok. Data a pravidla karet jsou zatím přímo v `app.js`. Veřejná verze běží na https://partia.foxlairstudio.com a zdrojový repozitář je https://github.com/foxlairapps/partia.
+Aktuální verze je čistá statická aplikace v `index.html`, `styles.css` a `app.js`. Nemá framework ani sestavovací krok. Data a pravidla karet jsou zatím přímo v `app.js`. Veřejná verze běží na https://patria.foxlairstudio.com a zdrojový repozitář je https://github.com/foxlairapps/partia.
 
 ## Důležité již dohodnuté chování
 
@@ -28,3 +28,4 @@ Aktuální verze je čistá statická aplikace v `index.html`, `styles.css` a `a
 Nejprve si přečti `DOKUMENTACE.md`, poté projdi definice `templates` a funkcí herního toku v `app.js`. Před každou změnou zachovej výše uvedené dohody. Po úpravě spusť syntaktickou kontrolu JavaScriptu a vizuálně ověř hlavní tah, dobrání, produkci, vylepšení, konec kola, knihovnu a odhazovací balíček.
 
 Při navazování se nejprve uživatele zeptej, kterou další část chce rozvíjet: úplnost pravidel a karet, ukládání/načítání, skórování, nebo další vizuální dolaďování.
+

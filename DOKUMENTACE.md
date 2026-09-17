@@ -4,7 +4,7 @@
 
 Patria je webový prototyp karetní hry o budování panství. Hra se nedá prohrát; cílem je rozvíjet karty a získávat vítězné body. Mechanika vychází z postupného hraní balíčku po kolech a z vylepšování jednotlivých karet mezi až čtyřmi stavy.
 
-Aktuální veřejná verze: https://partia.foxlairstudio.com
+Aktuální veřejná verze: https://patria.foxlairstudio.com
 
 ## 2. Základní herní smyčka
 
@@ -79,7 +79,7 @@ Po změně JavaScriptu je vhodné zkontrolovat syntaxi příkazem `node --check 
 
 Zdrojový repozitář: https://github.com/foxlairapps/partia
 
-Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje kořen repozitáře na GitHub Pages. V DNS musí `partia.foxlairstudio.com` zůstat jako CNAME směrovaný na GitHub Pages. Soubor `CNAME` v repozitáři musí obsahovat stejnou doménu.
+Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje kořen repozitáře na GitHub Pages. V DNS musí `patria.foxlairstudio.com` zůstat jako CNAME směrovaný na GitHub Pages. Soubor `CNAME` v repozitáři musí obsahovat stejnou doménu.
 
 ## 10. Známá omezení a další směr
 
@@ -88,6 +88,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Build 0.15.0 přidává samostatnou hlavní stránku, načtení uložené hry ze souboru a okamžité uložení kompletního stavu z menu. Na telefonu lze zvolit 2, 3, 4, 6 nebo 8 karet v řádku; velikost karet respektuje také dostupnou výšku obrazovky.
 - Build 0.15.1 sjednocuje zarovnání dialogů, pružně využívá šířku aktivní zóny, dokončuje svislé posouvání karet a přesouvá potvrzení vylepšení i Bandity k horním ovládacím ikonám. Dvojité klepnutí otevře zvětšenou aktivní kartu.
 - Build 0.15.2 přidává krátké vizuální uvedení Bandity před volbou blokované karty a zjednodušuje jeho dialog pouze na samotnou herní volbu. Horní potvrzení dialogů zůstává přichycené uvnitř obrazovky a vylepšení se na telefonu naležato přizpůsobuje dostupné výšce.
+- Build 0.16.0 zavádí pevnou kapacitu řádku 2–8 ovládanou táhlem, jednotný poměr karet 5:8, vystředěné mezifáze, vratné zvětšení karty a důsledné zablokování všech akcí u karty postižené Banditou. Veřejná doména byla opravena na `patria.foxlairstudio.com`.
 - Závěrečná a úvodní stránka kola jsou vertikálně rolovatelné. Úvod nového kola používá na malém displeji vodorovný pás zmenšených karet, které lze otevřít do plného detailu.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
@@ -102,3 +103,4 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Při požadavku na odhození karty jako platbu musí hráč vždy konkrétní kartu vybrat.
 - Detail otevřený z knihovny či odhazovacího balíčku se má zavřít zpět do původního dialogu.
 - Než se nové karty zamíchají, musí být možné prohlédnout je i všechny jejich stavy.
+

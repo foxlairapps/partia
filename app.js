@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.15.2";
+const BUILD_NUMBER = "0.16.0";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -268,9 +268,8 @@ let selectedBanditLink = null;
 let roundTransitionContext = null;
 let pendingRoundResolve = null;
 let pendingTurnResolve = null;
-let layoutCardCount = 0;
 const savedColumns = Number(localStorage.getItem("patria-max-columns"));
-let maxColumns = [2,3,4,6,8].includes(savedColumns) ? savedColumns : 6;
+let maxColumns = Number.isInteger(savedColumns)&&savedColumns>=2&&savedColumns<=8 ? savedColumns : 6;
 let showCardNumbers = localStorage.getItem("patria-show-card-numbers") === "true";
 const savedProductionConfirmation=localStorage.getItem("patria-confirm-production");
 let confirmProductionSetting=savedProductionConfirmation===null?(matchMedia("(pointer: coarse)").matches||innerWidth<760):savedProductionConfirmation==="true";
@@ -360,7 +359,8 @@ function getTemplate(card) { return templates[card.template]; }
 function cardAsset(card,stageIndex=card.state){return `assets/${String(card.number??card.id).padStart(3,"0")}${String.fromCharCode(97+stageIndex)}.jpg?v=${BUILD_NUMBER}`;}
 function getStage(card) { return getTemplate(card).stages[card.state]; }
 function getKind(card,stageIndex=card.state){const template=getTemplate(card);return template.stages[stageIndex].kind||template.kind;}
-function isFriendly(card){return !!card&&!getKind(card).includes("Nepřítel")&&!state.blocked[card.id];}
+function isBlocked(cardOrId){const id=typeof cardOrId==="object"?cardOrId?.id:cardOrId;return id!==undefined&&id!==null&&Boolean(state.blocked[id]);}
+function isFriendly(card){return !!card&&!getKind(card).includes("Nepřítel")&&!isBlocked(card);}
 function formatBundle(bundle = {}) { return Object.entries(bundle).filter(([,v])=>v).map(([k,v])=>`${R[k].icon} ${v}`).join("  ") || "—"; }
 function expandedBundle(bundle = {}) { return Object.entries(bundle||{}).flatMap(([key,value])=>Array.from({length:value},()=>R[key].icon)).join("") || "—"; }
 function productionIcons(bundle = {}) { return Object.entries(bundle).flatMap(([key,value])=>Array.from({length:value},()=>`<span class="production-item" aria-hidden="true">${R[key].icon}</span>`)).join(""); }
@@ -400,7 +400,6 @@ function startTurn(increment = true) {
   if (increment) state.turn += 1;
   state.resources = emptyResources();
   state.inactive = new Set();
-  layoutCardCount = 0;
   const drawn=drawCards(Math.min(4, state.deck.length), false);
   render();
   animateDeal(drawn);
@@ -473,12 +472,12 @@ async function confirmProduction(id) {
 }
 
 async function useEffect(id,forcedAction=null) {
-  if (state.busy || state.inactive.has(id) || slotOf(id) < 0) return;
+  if (state.busy || state.inactive.has(id) || slotOf(id) < 0 || isBlocked(id)) return;
   const card=getCard(id), current=getStage(card), action=forcedAction||current.action;
   if (action === "sacrifice-coin") {
     const choices=activeIds().filter(otherId => otherId !== id&&isFriendly(getCard(otherId)));
     if (!choices.length) return notify("Potřebuješ další aktivní kartu.");
-    pendingDiscard={sourceId:id,selectedId:choices[0]};
+    pendingDiscard={sourceId:id,choices,selectedId:choices[0]};
     renderDiscardChoice();
     document.querySelector("#discard-choice-dialog").showModal();
     return;
@@ -620,7 +619,7 @@ async function useEffect(id,forcedAction=null) {
     if(forcedAction==="defeat-witch"||forcedAction==="defeat-witch-hut"){
       if(!canAfford({sword:swordCost})){state.busy=false;return notify(`Chybí ${swordCost} síly.`);}spend({sword:swordCost});destroyCard(id);state.busy=false;render();return;
     }
-    const needed=witchMode?3:1,choices=activeIds().filter(otherId=>otherId!==id&&getKind(getCard(otherId)).includes("Osoba"));
+    const needed=witchMode?3:1,choices=activeIds().filter(otherId=>otherId!==id&&isFriendly(getCard(otherId))&&getKind(getCard(otherId)).includes("Osoba"));
     if(choices.length<needed){state.busy=false;return notify(`Potřebuješ ${needed} ${needed===1?"osobu":"osoby"}.`);}state.busy=false;pendingActionChoice={type:"sacrifice",sourceId:id,choices,selected:[],count:needed,transform:witchMode};return renderActionChoice();
   }
   state.busy=false;
@@ -629,7 +628,7 @@ async function useEffect(id,forcedAction=null) {
 
 function renderDiscardChoice() {
   if (!pendingDiscard) return;
-  const choices=activeIds().filter(id=>id!==pendingDiscard.sourceId);
+  const choices=(pendingDiscard.choices||[]).filter(id=>id!==pendingDiscard.sourceId&&slotOf(id)>=0&&isFriendly(getCard(id)));
   document.querySelector("#discard-choice-content").innerHTML=`
     <div class="dialog-header"><span class="eyebrow">Platba kartou</span><h2>Kterou kartu chceš odhodit?</h2><p>Zvolená karta i karta s efektem odejdou do odhazovacího balíčku.</p></div>
     <div class="discard-choices">${choices.map(id=>{
@@ -640,7 +639,7 @@ function renderDiscardChoice() {
 }
 
 function selectDiscardCard(id) {
-  if (!pendingDiscard || id===pendingDiscard.sourceId || slotOf(id)<0) return;
+  if (!pendingDiscard || !(pendingDiscard.choices||[]).includes(id) || id===pendingDiscard.sourceId || slotOf(id)<0 || !isFriendly(getCard(id))) return;
   pendingDiscard.selectedId=id;
   renderDiscardChoice();
 }
@@ -648,7 +647,7 @@ function selectDiscardCard(id) {
 async function confirmDiscardChoice() {
   if (!pendingDiscard || state.busy) return;
   const {sourceId,selectedId}=pendingDiscard;
-  if (slotOf(sourceId)<0 || slotOf(selectedId)<0) return;
+  if (slotOf(sourceId)<0 || slotOf(selectedId)<0 || !(pendingDiscard.choices||[]).includes(selectedId) || !isFriendly(getCard(selectedId))) return;
   document.querySelector("#discard-choice-dialog").close();
   pendingDiscard=null;
   state.busy=true;
@@ -712,7 +711,7 @@ async function animateBanditArrival(sourceId){
 }
 
 async function queueBanditBlocks(drawnIds){
-  const spoiled=drawnIds.map(getCard).find(card=>card?.template==="princess"&&card.state===1),friendly=activeIds().filter(id=>id!==spoiled?.id);
+  const spoiled=drawnIds.map(getCard).find(card=>card?.template==="princess"&&card.state===1),friendly=activeIds().filter(id=>id!==spoiled?.id&&isFriendly(getCard(id)));
   if(spoiled&&friendly.length){pendingActionChoice={type:"forced-discard",sourceId:spoiled.id,choices:friendly,selected:[],count:Math.min(3,friendly.length),remainingBandits:drawnIds};renderActionChoice();return;}
   const assassin=activeIds().map(getCard).find(card=>card?.template==="assassin"&&card.state===0&&!card.triggered),victims=drawnIds.filter(id=>id!==assassin?.id&&getCard(id)&&getKind(getCard(id)).includes("Osoba"));
   if(assassin&&victims.length){pendingActionChoice={type:"assassination",sourceId:assassin.id,choices:victims,selectedId:null,remainingBandits:drawnIds};renderActionChoice();return;}
@@ -918,7 +917,7 @@ function upgradeCost(card, target) {
 }
 
 async function upgrade(id, target) {
-  if (state.busy || state.inactive.has(id) || activeIds().some(otherId=>{const other=getCard(otherId);return other?.template==="darkKnight"&&other.state===0||getStage(other)?.advanceLock;})) return notify("Nepřítel právě brání vylepšování.");
+  if (state.busy || state.inactive.has(id) || isBlocked(id) || activeIds().some(otherId=>{const other=getCard(otherId);return other?.template==="darkKnight"&&other.state===0||getStage(other)?.advanceLock;})) return notify("Tuto kartu teď nelze vylepšit.");
   const card=getCard(id), current=getStage(card);
   if (slotOf(id) < 0 || !current.next.includes(target)) return;
   const cost=upgradeCost(card,target);
@@ -1172,7 +1171,7 @@ function closeDialogs() { document.querySelectorAll("dialog[open]").forEach(d=>d
 
 function showUpgradeChoice(id, preferredTarget = null) {
   const card=getCard(id), current=getStage(card);
-  if (!card || slotOf(id) < 0 || !current.next.length || state.busy) return;
+  if (!card || slotOf(id) < 0 || !current.next.length || state.busy || isBlocked(id)) return;
   const cardDialog=document.querySelector("#card-dialog");
   if (cardDialog.open) cardDialog.close();
   const target=current.next.includes(preferredTarget) ? preferredTarget : current.next.find(next=>canAfford(upgradeCost(card,next))) ?? current.next[0];
@@ -1212,6 +1211,7 @@ function selectUpgradeTarget(target) {
 function confirmUpgrade() {
   if (!pendingUpgrade) return;
   const {id,target}=pendingUpgrade;
+  if(isBlocked(id))return;
   upgrade(id,target);
 }
 
@@ -1248,7 +1248,7 @@ async function usePermanent(id){
 }
 
 function effectAvailable(card) {
-  return Boolean(getStage(card).action);
+  return !isBlocked(card)&&Boolean(getStage(card).action);
 }
 
 function ruleVisible(template,stateIndex) {
@@ -1284,7 +1284,7 @@ function renderCard(id) {
   const linkId=state.blocked[id]||(blockingVictim?id:null);
   const production=getProduction(card),hasProduction=Object.values(production).some(Boolean);
   const effectIsActive=effectAvailable(card);
-  const affordableTargets=next.filter(target=>canAfford(upgradeCost(card,target)));
+  const affordableTargets=isBlocked(id)?[]:next.filter(target=>canAfford(upgradeCost(card,target)));
   const upgradeLabel=next.length===1?expandedBundle(upgradeCost(card,next[0])):next.map(target=>expandedBundle(upgradeCost(card,target))).join(" / ");
   const upgradeAria=next.length===1?formatBundle(upgradeCost(card,next[0])):next.map(target=>formatBundle(upgradeCost(card,target))).join(" nebo ");
   const upgradeRows=next.map(target=>`<span class="upgrade-line"><span>⭐</span><strong>${expandedBundle(upgradeCost(card,target))}</strong></span>`).join("");
@@ -1323,12 +1323,10 @@ function render() {
   resourceBar.classList.toggle("empty",!producedResources);
   renderPermanents();
   const lastOccupied=state.slots.reduce((last,id,index)=>id===null?last:index,-1);
-  layoutCardCount=Math.max(layoutCardCount,lastOccupied+1);
   const visibleSlots=lastOccupied<0?[]:state.slots.slice(0,lastOccupied+1).map((id,index)=>({id,index}));
   const playArea=document.querySelector("#play-area");
-  const layoutColumns=Math.max(1,Math.min(maxColumns,layoutCardCount||1));
-  playArea.classList.toggle("two-rows",visibleSlots.length>layoutColumns);
-  playArea.style.setProperty("--max-columns",layoutColumns);
+  playArea.classList.toggle("two-rows",visibleSlots.length>maxColumns);
+  playArea.style.setProperty("--max-columns",maxColumns);
   playArea.innerHTML=visibleSlots.map(({id,index})=>id===null?`<div class="card-slot empty-slot" data-slot="${index}" aria-hidden="true"></div>`:`<div class="card-slot" data-slot="${index}">${renderCard(id)}</div>`).join("");
   requestAnimationFrame(updateCardSize);
   document.querySelector("#empty-state").hidden=activeIds().length>0;
@@ -1341,20 +1339,21 @@ function updateCardSize() {
   if (!area || !grid) return;
   const columns=Math.max(1,Number(grid.style.getPropertyValue("--max-columns"))||maxColumns);
   const gap=10;
-  const bottomSpace=42;
+  const bottomSpace=38;
+  const ratio=5/8;
   const horizontal=Math.floor((area.clientWidth-4-(columns-1)*gap)/columns);
   const availableHeight=Math.max(120,area.parentElement.clientHeight);
   const visibleRows=Math.max(1,Math.ceil(grid.children.length/columns));
-  let width=Math.max(64,horizontal);
-  const idealCardHeight=width/.63;
+  let width=Math.max(24,horizontal);
+  const idealCardHeight=width/ratio;
   if(visibleRows===1){
-    width=Math.max(64,Math.min(width,Math.floor((availableHeight-bottomSpace)*.63)));
+    width=Math.max(24,Math.min(width,Math.floor((availableHeight-bottomSpace)*ratio)));
   }else{
     const idealContentHeight=visibleRows*idealCardHeight+(visibleRows-1)*gap+bottomSpace;
     const overflow=idealContentHeight-availableHeight;
     if(overflow>0&&overflow<=idealCardHeight*.2){
-      const fitted=Math.floor(((availableHeight-bottomSpace-(visibleRows-1)*gap)/visibleRows)*.63);
-      width=Math.max(64,Math.min(width,fitted));
+      const fitted=Math.floor(((availableHeight-bottomSpace-(visibleRows-1)*gap)/visibleRows)*ratio);
+      width=Math.max(24,Math.min(width,fitted));
     }
   }
   area.style.height=`${availableHeight}px`;
@@ -1364,7 +1363,7 @@ function updateCardSize() {
 }
 
 function applyCardMetrics(grid,width) {
-  const scale=Math.max(.52,width/178);
+  const scale=Math.max(.16,width/178);
   grid.style.setProperty("--card-scale",String(scale));
   const metrics={
     cardRadius:12,headerHeight:56,headerGap:2,headerPadTop:7,headerPadSide:8,headerPadBottom:8,rowGap:7,
@@ -1382,7 +1381,7 @@ function showFocusedCard(id){
   content.innerHTML=`<div class="card-grid focus-card-shell" style="--max-columns:1"><div class="card-slot">${renderCard(id).replace('draggable="true"','draggable="false"')}</div></div>`;
   if(!dialog.open)dialog.showModal();
   requestAnimationFrame(()=>{
-    const width=Math.max(178,Math.floor(Math.min(380,innerWidth-54,(innerHeight-54)*.63)));
+    const width=Math.max(178,Math.floor(Math.min(380,innerWidth-54,(innerHeight-54)*(5/8))));
     const shell=content.querySelector(".focus-card-shell");
     shell.style.setProperty("--card-width",`${width}px`);
     applyCardMetrics(shell,width);
@@ -1408,12 +1407,6 @@ document.addEventListener("click", event => {
     if (button.dataset.markCount&&pendingActionChoice?.type==="mercenary") { pendingActionChoice.markCount=Number(button.dataset.markCount);renderActionChoice(); }
     if (button.dataset.inventorMode&&pendingActionChoice?.type==="inventor") { pendingActionChoice.mode=button.dataset.inventorMode;pendingActionChoice.selectedId=null;pendingActionChoice.selected=[];renderActionChoice(); }
     if (button.dataset.selectSideChoice!==undefined&&pendingActionChoice?.type==="side-choice") { pendingActionChoice.selectedId=Number(button.dataset.selectSideChoice);renderActionChoice(); }
-    if (button.dataset.columns) {
-      maxColumns=Number(button.dataset.columns);
-      localStorage.setItem("patria-max-columns",String(maxColumns));
-      document.querySelectorAll("[data-columns]").forEach(option=>option.classList.toggle("selected",Number(option.dataset.columns)===maxColumns));
-      render();
-    }
     if (button.hasAttribute("data-confirm-upgrade")) confirmUpgrade();
     if (button.hasAttribute("data-confirm-discard")) confirmDiscardChoice();
     if (button.hasAttribute("data-confirm-retrieve")) confirmRetrieveCard();
@@ -1442,7 +1435,9 @@ document.addEventListener("click", event => {
   if (!event.target.closest("#settings-menu")) hideSettingsMenu();
 });
 document.addEventListener("dblclick",event=>{
-  if(event.target.closest("button, dialog"))return;
+  if(event.target.closest("button"))return;
+  const focused=event.target.closest("#card-focus-dialog .game-card");
+  if(focused){document.querySelector("#card-focus-dialog").close();return;}
   const card=event.target.closest("#play-area .game-card");
   if(card)showFocusedCard(Number(card.dataset.card));
 });
@@ -1497,12 +1492,14 @@ document.querySelector("#settings-button").addEventListener("click",event=>{
   const menu=document.querySelector("#settings-menu"),open=menu.hidden;
   menu.hidden=!open;
   event.currentTarget.setAttribute("aria-expanded",String(open));
-  document.querySelectorAll("[data-columns]").forEach(button=>button.classList.toggle("selected",Number(button.dataset.columns)===maxColumns));
+  document.querySelector("#column-count").value=String(maxColumns);
+  document.querySelector("#column-count-value").value=String(maxColumns);
   document.querySelector("#show-card-numbers").checked=showCardNumbers;
   document.querySelector("#confirm-production").checked=confirmProductionSetting;
 });
 document.querySelector("#show-card-numbers").addEventListener("change",event=>{showCardNumbers=event.target.checked;localStorage.setItem("patria-show-card-numbers",String(showCardNumbers));render();});
 document.querySelector("#confirm-production").addEventListener("change",event=>{confirmProductionSetting=event.target.checked;localStorage.setItem("patria-confirm-production",String(confirmProductionSetting));});
+document.querySelector("#column-count").addEventListener("input",event=>{maxColumns=Math.max(2,Math.min(8,Number(event.target.value)||6));document.querySelector("#column-count-value").value=String(maxColumns);localStorage.setItem("patria-max-columns",String(maxColumns));render();});
 document.querySelector("#discard-pile").addEventListener("click",()=>showDiscardBrowser());
 document.querySelectorAll("dialog").forEach(dialog=>{
   dialog.addEventListener("cancel",event=>{if(dialog.id==="action-choice-dialog"&&["block","decree","volcano","permanent-intro","side-choice"].includes(pendingActionChoice?.type))event.preventDefault();});
@@ -1513,5 +1510,8 @@ window.addEventListener("resize",updateCardSize);
 
 document.querySelector("#show-card-numbers").checked=showCardNumbers;
 document.querySelector("#confirm-production").checked=confirmProductionSetting;
+document.querySelector("#column-count").value=String(maxColumns);
+document.querySelector("#column-count-value").value=String(maxColumns);
 document.querySelector("#build-number").textContent=BUILD_NUMBER;
 showWelcome();
+

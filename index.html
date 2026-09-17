@@ -7,7 +7,7 @@
   <meta name="description" content="Hratelný prototyp karetní hry o budování panství." />
   <title>Patria — karetní prototyp</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317130f'/%3E%3Cpath d='M6 11l5 4 5-8 5 8 5-4-2 13H8L6 11z' fill='%23d7aa54'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=0.16.0" />
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -46,12 +46,9 @@
         <div id="settings-menu" class="settings-popover" hidden>
           <div class="settings-section">
             <span class="settings-label">Karet v řádku</span>
-            <div class="column-options" role="group" aria-label="Počet karet v řádku">
-              <button type="button" data-columns="2">2</button>
-              <button type="button" data-columns="3">3</button>
-              <button type="button" data-columns="4">4</button>
-              <button type="button" data-columns="6">6</button>
-              <button type="button" data-columns="8">8</button>
+            <div class="column-slider">
+              <input id="column-count" type="range" min="2" max="8" step="1" aria-label="Počet karet v řádku" />
+              <output id="column-count-value" for="column-count">6</output>
             </div>
             <label class="settings-toggle"><input id="show-card-numbers" type="checkbox" /> <span>Zobrazovat čísla karet</span></label>
             <label class="settings-toggle"><input id="confirm-production" type="checkbox" /> <span>Potvrzovat použití produkce</span></label>
@@ -95,6 +92,7 @@
     <div class="shuffle-cards" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=0.16.0"></script>
 </body>
 </html>
+
