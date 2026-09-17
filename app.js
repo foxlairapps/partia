@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.17.0";
+const BUILD_NUMBER = "0.17.1";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -1191,11 +1191,18 @@ function showDebugCardPicker(){
   hideSettingsMenu();
   const rows=implementedCardSpecs().map(([number,template])=>{
     const item=templates[template],search=`${String(number).padStart(3,"0")} ${item.title} ${item.kind}`.toLocaleLowerCase("cs");
-    return `<section class="debug-card-row" data-debug-search="${search}"><div><strong>(${String(number).padStart(3,"0")}) ${item.title}</strong><small>${item.kind}</small></div><select data-debug-state aria-label="Stav karty ${item.title}">${item.stages.map((stage,index)=>`<option value="${index}">${String.fromCharCode(65+index)} · ${stage.name}</option>`).join("")}</select><button class="upgrade-action" data-debug-add-card="${number}" type="button">Vložit</button></section>`;
+    return `<section class="debug-card-row" data-debug-search="${search}" data-debug-number="${number}"><div class="debug-card-label"><strong>(${String(number).padStart(3,"0")}) ${item.title}</strong><small>${item.kind}</small></div><select data-debug-state aria-label="Stav karty ${item.title}">${item.stages.map((stage,index)=>`<option value="${index}">${String.fromCharCode(65+index)} · ${stage.name}</option>`).join("")}</select><div class="debug-card-actions"><button class="secondary-action" data-debug-preview="${number}" type="button">Náhled</button><button class="upgrade-action" data-debug-add-card="${number}" type="button">Vložit</button></div></section>`;
   }).join("");
   document.querySelector("#debug-card-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Debug mód</span><h2>Vložit kartu do hry</h2><p>Vyber kartu a její stav. Karta se vloží do první volné pozice.</p></div><input id="debug-card-search" class="debug-card-search" type="search" placeholder="Hledat podle čísla nebo názvu…" autocomplete="off"><div class="debug-card-list">${rows}</div>`;
   const dialog=document.querySelector("#debug-card-dialog");if(!dialog.open)dialog.showModal();
   requestAnimationFrame(()=>document.querySelector("#debug-card-search")?.focus());
+}
+
+function toggleDebugPreview(number){
+  const row=document.querySelector(`.debug-card-row[data-debug-number="${number}"]`),existing=row?.querySelector(".debug-card-preview");if(!row)return;
+  if(existing){existing.remove();row.classList.remove("preview-open");return;}
+  const template=implementedCardSpecs().find(([id])=>id===number)?.[1];if(!template)return;
+  const card={id:number,number,template,state:0},preview=document.createElement("div");preview.className="debug-card-preview";preview.innerHTML=templates[template].stages.map((_,index)=>renderPreviewCard(card,index,true)).join("");row.appendChild(preview);row.classList.add("preview-open");preview.scrollIntoView({block:"nearest",behavior:"smooth"});
 }
 
 function addDebugCard(number,stageIndex){
@@ -1459,14 +1466,15 @@ function updateCardSize() {
   const bottomSpace=38;
   const ratio=5/8;
   const horizontal=Math.floor((area.clientWidth-4-(columns-1)*gap)/columns);
-  const parent=area.parentElement,parentStyle=getComputedStyle(parent);
-  const availableHeight=Math.max(120,parent.clientHeight-(parseFloat(parentStyle.paddingTop)||0)-(parseFloat(parentStyle.paddingBottom)||0));
+  const parent=area.parentElement,parentStyle=getComputedStyle(parent),areaTop=area.getBoundingClientRect().top;
+  const parentHeight=parent.clientHeight-(parseFloat(parentStyle.paddingTop)||0)-(parseFloat(parentStyle.paddingBottom)||0);
+  const viewportHeight=innerHeight-areaTop-6;
+  const availableHeight=Math.max(120,Math.min(parentHeight,viewportHeight));
   const visibleRows=Math.max(1,Math.ceil(grid.children.length/columns));
-  let width=Math.max(24,horizontal);
+  const firstRowWidth=Math.floor((availableHeight-bottomSpace)*ratio);
+  let width=Math.max(24,Math.min(horizontal,firstRowWidth));
   const idealCardHeight=width/ratio;
-  if(visibleRows===1){
-    width=Math.max(24,Math.min(width,Math.floor((availableHeight-bottomSpace)*ratio)));
-  }else{
+  if(visibleRows>1){
     const idealContentHeight=visibleRows*idealCardHeight+(visibleRows-1)*gap+bottomSpace;
     const overflow=idealContentHeight-availableHeight;
     if(overflow>0&&overflow<=idealCardHeight*.2){
@@ -1486,7 +1494,7 @@ function applyCardMetrics(grid,width) {
   grid.style.setProperty("--card-scale",String(scale));
   const metrics={
     cardRadius:12,headerHeight:56,headerGap:2,headerPadTop:7,headerPadSide:8,headerPadBottom:8,rowGap:7,
-    kindFont:9,titleFont:13.5,pointsFont:10.7,pipsGap:3,pipsPad:2,pipSize:7,
+    kindFont:9,cardNumberFont:4.5,titleFont:13.5,pointsFont:10.7,pipsGap:3,pipsPad:2,pipSize:7,
     productionTop:60,productionHeight:42,productionPadY:6,productionPadX:8,productGap:2,productWidth:27,productHeight:27,productFont:16,
     effectSide:8,effectBottom:49,effectHeight:43,effectPadY:7,effectPadX:8,effectRadius:6,effectFont:10,
     upgradeSide:7,upgradeBottom:7,upgradeGap:4,upgradeHeight:34,upgradeMaxWidth:128,upgradePadY:5,upgradePadX:7,upgradeRadius:7,upgradeIcon:13.8,upgradeFont:11
@@ -1540,6 +1548,7 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-open-library")) showLibrary();
     if (button.hasAttribute("data-close-card-list")) document.querySelector("#card-list-dialog").close();
     if (button.hasAttribute("data-close-debug-cards")) document.querySelector("#debug-card-dialog").close();
+    if (button.dataset.debugPreview) toggleDebugPreview(Number(button.dataset.debugPreview));
     if (button.dataset.debugAddCard) {const row=button.closest(".debug-card-row"),stage=Number(row?.querySelector("[data-debug-state]")?.value||0);addDebugCard(Number(button.dataset.debugAddCard),stage);}
     if (button.dataset.exportReward) claimExportReward(Number(button.dataset.exportReward));
     if (button.hasAttribute("data-prepare-round")) prepareNextRound();

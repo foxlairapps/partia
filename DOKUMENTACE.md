@@ -90,6 +90,7 @@ Každá změna ve větvi `main` spustí GitHub Actions workflow a publikuje koř
 - Build 0.15.2 přidává krátké vizuální uvedení Bandity před volbou blokované karty a zjednodušuje jeho dialog pouze na samotnou herní volbu. Horní potvrzení dialogů zůstává přichycené uvnitř obrazovky a vylepšení se na telefonu naležato přizpůsobuje dostupné výšce.
 - Build 0.16.0 zavádí pevnou kapacitu řádku 2–8 ovládanou táhlem, jednotný poměr karet 5:8, vystředěné mezifáze, vratné zvětšení karty a důsledné zablokování všech akcí u karty postižené Banditou. Veřejná doména byla opravena na `patria.foxlairstudio.com`.
 - Build 0.17.0 opravuje posouvání dlouhých pásů karet a mobilní výšku aktivní zóny, implementuje Svatyni 082/083, přidává debug režim pro vložení libovolné karty ve zvoleném stavu a dokončuje zbývající akce pozdějších karet. Karty, které zůstávají ve hře, se v novém tahu řadí dopředu a jejich pasivní vlastnost je označena symbolem ♾️.
+- Build 0.17.1 opravuje skrytí debug tlačítka, dovoluje projít celý debug seznam a přidává rozbalovací náhled všech stavů před vložením. První řádek aktivních karet se vždy přizpůsobí dostupné výšce obrazovky.
 - Závěrečná a úvodní stránka kola jsou vertikálně rolovatelné. Úvod nového kola používá na malém displeji vodorovný pás zmenšených karet, které lze otevřít do plného detailu.
 - Uložení není zatím možné načíst z menu a není přenosné mezi zařízeními.
 - Chybí úplné vyhodnocení vítězných bodů, závěrečné skóre a delší postup kampaní.
