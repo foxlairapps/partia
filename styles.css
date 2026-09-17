@@ -78,7 +78,7 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 /* Číslo karty je volitelné a zůstává uprostřed prvního řádku hlavičky. */
-.card-header-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.card-header-top .card-kind{grid-column:1}.card-header-top .card-number{grid-column:2;justify-self:center}.card-header-top .state-pips{grid-column:3;justify-self:end}.card-number{color:#d8cebd;font-size:.28rem;font-weight:400;letter-spacing:.06em}
+.card-header-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.card-header-top .card-kind{grid-column:1}.card-header-top .card-number{grid-column:2;justify-self:center}.card-header-top .state-pips{grid-column:3;justify-self:end}.card-number{color:#d8cebd;font-size:.448rem;font-weight:400;letter-spacing:.06em}
 .settings-toggle{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;color:#ddd2bf;border-top:1px solid var(--line);font-size:.76rem;cursor:pointer}.settings-toggle input{width:16px;height:16px;accent-color:var(--gold)}
 
 /* Detail používá stejné celé karty jako hra, bez deformování obrázku. */
@@ -245,6 +245,9 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
 .debug-card-preview{grid-column:1/-1;display:flex!important;gap:10px;width:100%;padding:10px 2px 5px;overflow-x:auto;scrollbar-color:#8a683d #17130f;scrollbar-width:thin}
 .debug-card-preview .preview-card{flex:0 0 178px;width:178px}
 .debug-add{font-size:1.2rem}
+.choice-dialog:has(.discover-choice-grid){width:min(900px,calc(100vw - 28px))}
+.discover-choice-grid{display:grid;grid-template-columns:repeat(var(--choice-count),minmax(0,1fr));align-items:start;gap:12px;width:100%}
+.discover-choice-item{display:grid;gap:8px;min-width:0}.discover-choice-item .full-card-choice{width:100%;min-width:0}.discover-choice-item .preview-card{width:100%}.discover-preview-action{width:100%;min-height:36px;padding:6px 8px;font-size:.72rem}
 @media(max-width:900px){.round-new-cards{justify-content:flex-start}}
 @media(max-width:680px){
   .card-list-dialog{width:calc(100vw - 8px);padding:14px 6px}
@@ -256,5 +259,7 @@ dialog{width:min(1100px,calc(100vw - 28px));max-height:calc(100vh - 28px);overfl
   .debug-card-label{grid-column:1/-1}.debug-card-row select{font-size:.75rem}.debug-card-row button{min-width:0;padding-inline:8px}
   .debug-card-actions button{min-width:68px}
   .debug-card-preview{grid-column:1/-1}.debug-card-preview .preview-card{flex-basis:145px;width:145px}
+  .discover-choice-grid{display:flex;justify-content:flex-start;gap:10px;overflow-x:auto;padding:2px 2px 12px;scroll-snap-type:x proximity}
+  .discover-choice-item{flex:0 0 142px;width:142px;scroll-snap-align:start}
 }
 

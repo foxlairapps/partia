@@ -6,7 +6,7 @@ const R = {
   sword: { label: "Síla", icon: "⚔️" },
   goods: { label: "Zboží", icon: "📦" },
 };
-const BUILD_NUMBER = "0.17.1";
+const BUILD_NUMBER = "0.17.2";
 
 const art = (family, stage) => `assets/${family}-${stage}.jpg`;
 const stage = (name, image, production = {}, cost = null, fame = 0, effect = "", next = [], extra = {}) => ({ name, image, production, cost, fame, effect, next, ...extra });
@@ -819,7 +819,7 @@ function renderActionChoice(){
     const choice=pendingActionChoice,remaining=choice.count-choice.selected.length;
     openActionChoice(`<div class="dialog-header"><span class="eyebrow">Vynálezkyně</span><h2>Jak využiješ inspiraci?</h2><p>Objev jeden dosud neznámý vynález, nebo získej ${choice.count} libovolné ${choice.count===1?"surovinu":"suroviny"}.</p></div><div class="column-options"><button data-inventor-mode="discover" class="${choice.mode==="discover"?"selected":""}" type="button" ${choice.choices.length?"":"disabled"}>Objevit vynález</button><button data-inventor-mode="resources" class="${choice.mode==="resources"?"selected":""}" type="button">Získat suroviny</button></div>${choice.mode==="discover"?`<div class="discard-choices">${choice.choices.map(number=>{const card={id:number,number,template:catalog[number],state:0};return `<button class="full-card-choice ${number===choice.selectedId?"selected":""}" data-select-action-card="${number}" type="button">${renderPreviewCard(card,0)}</button>`}).join("")}</div>`:choice.mode==="resources"?`<p class="choice-summary">${choice.selected.map(key=>R[key].icon).join(" ")||`Vyber ${choice.count}`}</p><div class="resource-choice-grid">${choice.options.map(key=>`<button data-pick-resource="${key}" type="button">${R[key].icon}<span>${R[key].label}</span></button>`).join("")}</div>`:""}<div class="upgrade-confirm-bar"><button class="upgrade-action" data-confirm-action-choice type="button" ${choice.mode==="discover"&&!choice.selectedId||choice.mode==="resources"&&remaining?"disabled":""}>Potvrdit</button></div>`);
   } else if(pendingActionChoice.type==="discover") {
-    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Objev</span><h2>Vyber navazující kartu</h2><p>Prohlédni si celou kartu a potvrď svou volbu.</p></div><div class="discard-choices">${pendingActionChoice.choices.map(number=>{const card={id:number,number,template:catalog[number],state:0};return `<button class="full-card-choice ${number===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${number}" type="button">${renderPreviewCard(card,0)}</button>`}).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${pendingActionChoice.selectedId?"":"disabled"}>Objevit kartu</button></div>`);
+    openActionChoice(`<div class="dialog-header"><span class="eyebrow">Objev</span><h2>Vyber navazující kartu</h2><p>Každou kartu si můžeš před volbou prohlédnout ve všech stavech.</p></div><div class="discover-choice-grid" style="--choice-count:${pendingActionChoice.choices.length}">${pendingActionChoice.choices.map(number=>{const card={id:number,number,template:catalog[number],state:0};return `<div class="discover-choice-item"><button class="full-card-choice ${number===pendingActionChoice.selectedId?"selected":""}" data-select-action-card="${number}" type="button">${renderPreviewCard(card,0)}</button><button class="secondary-action discover-preview-action" data-catalog-detail="${number}" type="button">Prohlédnout stavy</button></div>`}).join("")}</div><div class="upgrade-confirm-bar"><button class="secondary-action" data-close-action-choice type="button">Zrušit</button><button class="upgrade-action" data-confirm-action-choice type="button" ${pendingActionChoice.selectedId?"":"disabled"}>Objevit kartu</button></div>`);
   } else {
     const blocking=pendingActionChoice.type==="block";
     if(blocking){topConfirmation.hidden=false;topConfirmation.disabled=!pendingActionChoice.selectedId;}
@@ -1275,6 +1275,11 @@ function animateDiscard(ids) {
 }
 
 function showCard(id) { const card=getCard(id);if(!card)return;state.selectedCard=id;renderDialog();const dialog=document.querySelector("#card-dialog");if(!dialog.open)dialog.showModal(); }
+function showCatalogCard(number){
+  const template=catalog[number],card=template?{id:number,number,template,state:0}:null;if(!card)return;
+  document.querySelector("#card-dialog-content").innerHTML=`<div class="dialog-header"><span class="eyebrow">Náhled karty ${String(number).padStart(3,"0")}</span><h2>${getTemplate(card).title}</h2><p>Všechny možné stavy této karty.</p></div><div class="stage-gallery">${getTemplate(card).stages.map((stage,index)=>`<article class="stage-card"><span class="stage-label">Stav ${index+1}</span>${renderPreviewCard(card,index,true)}</article>`).join("")}</div>`;
+  const dialog=document.querySelector("#card-dialog");if(!dialog.open)dialog.showModal();
+}
 function hideSettingsMenu() {
   document.querySelector("#settings-menu").hidden=true;
   document.querySelector("#settings-button").setAttribute("aria-expanded","false");
@@ -1494,7 +1499,7 @@ function applyCardMetrics(grid,width) {
   grid.style.setProperty("--card-scale",String(scale));
   const metrics={
     cardRadius:12,headerHeight:56,headerGap:2,headerPadTop:7,headerPadSide:8,headerPadBottom:8,rowGap:7,
-    kindFont:9,cardNumberFont:4.5,titleFont:13.5,pointsFont:10.7,pipsGap:3,pipsPad:2,pipSize:7,
+    kindFont:9,cardNumberFont:7.2,titleFont:13.5,pointsFont:10.7,pipsGap:3,pipsPad:2,pipSize:7,
     productionTop:60,productionHeight:42,productionPadY:6,productionPadX:8,productGap:2,productWidth:27,productHeight:27,productFont:16,
     effectSide:8,effectBottom:49,effectHeight:43,effectPadY:7,effectPadX:8,effectRadius:6,effectFont:10,
     upgradeSide:7,upgradeBottom:7,upgradeGap:4,upgradeHeight:34,upgradeMaxWidth:128,upgradePadY:5,upgradePadX:7,upgradeRadius:7,upgradeIcon:13.8,upgradeFont:11
@@ -1554,6 +1559,7 @@ document.addEventListener("click", event => {
     if (button.hasAttribute("data-prepare-round")) prepareNextRound();
     if (button.hasAttribute("data-shuffle-round")) shuffleAndStartRound();
     if (button.dataset.detail) showCard(Number(button.dataset.detail));
+    if (button.dataset.catalogDetail) showCatalogCard(Number(button.dataset.catalogDetail));
     if (button.hasAttribute("data-close-card")) document.querySelector("#card-dialog").close();
     if (button.hasAttribute("data-close-library")) { document.querySelector("#library-dialog").close();document.querySelector("#round-transition")?.classList.remove("behind-dialog"); }
     if (button.hasAttribute("data-close-dialog")) closeDialogs();
