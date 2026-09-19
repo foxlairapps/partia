@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#17130f" />
+  <title>Patria — pravidla</title>
+  <style>
+    :root{color-scheme:dark;--ink:#f6efd9;--muted:#b9ad98;--bg:#17130f;--panel:#211a13;--line:rgba(236,210,157,.18);--gold:#d7aa54;--bright:#f3cf79}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;color:var(--ink);background:radial-gradient(circle at 18% 0%,rgba(125,85,45,.25),transparent 34rem),radial-gradient(circle at 100% 35%,rgba(36,72,58,.2),transparent 40rem),var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:inherit}.shell{width:min(1120px,calc(100% - 32px));margin:auto;padding:22px 0 60px}.top{position:sticky;z-index:5;top:0;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;background:linear-gradient(var(--bg) 70%,transparent)}
+    .back{text-decoration:none;border:1px solid var(--line);border-radius:9px;padding:9px 13px;background:#2d261e}.back:hover{border-color:var(--bright)}
+    .brand{font-family:Georgia,"Times New Roman",serif;font-size:1.5rem}.hero{position:relative;overflow:hidden;min-height:310px;margin:8px 0 24px;border:1px solid var(--line);border-radius:20px;background:#201a14}
+    .hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.5}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(15,12,9,.94),rgba(15,12,9,.44))}
+    .hero-copy{position:relative;z-index:1;max-width:680px;padding:clamp(28px,5vw,58px)}.eyebrow{color:var(--gold);font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}
+    h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:500}h1{margin:8px 0 10px;font-size:clamp(3rem,8vw,5.6rem);line-height:.9}h2{margin:0 0 14px;font-size:1.65rem}h3{margin:20px 0 8px;font-size:1.12rem;color:#fff1c7}
+    p,li{color:#ddd1bd;line-height:1.62}.hero p{font-size:1.05rem}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{padding:22px;border:1px solid var(--line);border-radius:15px;background:rgba(33,26,19,.78)}
+    .card.wide{grid-column:1/-1}.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:10px}.steps li{position:relative;padding-left:38px}.steps li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:.1em;display:grid;place-items:center;width:26px;height:26px;color:#241a0d;border-radius:50%;background:var(--bright);font-weight:800;font-size:.78rem}
+    .resources{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.resource{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#2a231b;color:#eee4d1}.tip{margin-top:14px;padding:12px 14px;border-left:3px solid var(--gold);background:rgba(215,170,84,.08);color:#e8dcc5}
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}.toc a{text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:.8rem}.toc a:hover{color:var(--ink);border-color:var(--gold)}
+    footer{padding:30px 0 0;color:#8f8371;text-align:center;font-size:.78rem}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}.card.wide{grid-column:auto}.hero{min-height:280px}.shell{width:min(100% - 22px,1120px)}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="top"><a class="back" href="./">← Zpět do hry</a><div class="brand">Patria</div></div>
+
+    <section class="hero">
+      <img src="./assets/001d.jpg" alt="" />
+      <div class="hero-copy"><span class="eyebrow">Pravidla hry</span><h1>Patria</h1><p>Buduješ panství pomocí karet krajiny, budov, osob a dalších událostí. Hru nelze prohrát — cílem je rozvíjet panství co nejlépe a na konci získat co nejvíce bodů slávy.</p></div>
+    </section>
+
+    <nav class="toc" aria-label="Obsah pravidel">
+      <a href="#zaklad">Základ</a><a href="#tah">Tah</a><a href="#akce">Akce karet</a><a href="#kolo">Kolo</a><a href="#specialni">Zvláštní karty</a><a href="#ovladani">Ovládání</a>
+    </nav>
+
+    <div class="grid">
+      <section class="card" id="zaklad"><span class="eyebrow">1 · Cíl</span><h2>Rozvíjej své panství</h2><p>Začínáš s balíčkem deseti karet. Jednotlivé karty můžeš během hry vylepšovat do dalších stavů. Lepší stavy obvykle přinášejí silnější produkci, nové efekty a více bodů.</p><div class="resources"><span class="resource">🪙 mince</span><span class="resource">🪵 dřevo</span><span class="resource">🪨 kámen</span><span class="resource">⚙️ kov</span><span class="resource">⚔️ síla</span><span class="resource">📦 zboží</span></div></section>
+
+      <section class="card" id="tah"><span class="eyebrow">2 · Tah</span><h2>Jeden tah, jedno velké rozhodnutí</h2><ol class="steps"><li>Na začátku tahu se vyloží až čtyři karty.</li><li>Můžeš používat produkci a aktivní efekty vyložených karet.</li><li>Podle potřeby můžeš dobrat další dvě karty, pokud tomu nic nebrání.</li><li>Vylepšení karty je zpravidla hlavní akcí tahu a tah po něm končí.</li></ol></section>
+
+      <section class="card wide" id="akce"><span class="eyebrow">3 · Karty</span><h2>Produkce, efekty a vylepšení</h2><h3>Produkce</h3><p>Kliknutím na produkci získáš uvedené suroviny. Karta se poté obvykle odhodí, ale tah pokračuje. Suroviny nasbírané v průběhu tahu zůstávají k dispozici až do jeho konce.</p><h3>Aktivní efekt</h3><p>Některé karty mají vlastní akci: mohou vracet karty z odhazovacího balíčku, kopírovat produkci, měnit suroviny nebo vybírat konkrétní cíle. Text na kartě má přednost před obecným pravidlem.</p><h3>Vylepšení</h3><p>Zaplať cenu uvedenou na kartě a vyber její další stav. Některé karty mají jedinou cestu vývoje, jiné se větví. Po vylepšení se karta změní do nového stavu a tah zpravidla končí.</p><div class="tip">Stavové tečky v pravém horním rohu karty umožňují prohlédnout celý její vývoj dopředu.</div></section>
+
+      <section class="card" id="kolo"><span class="eyebrow">4 · Kolo</span><h2>Konec balíčku není konec hry</h2><p>Když dojde dobírací balíček, dokončí se kolo. Hra zobrazí závěr období a následně představí nové karty. Ty se přidají do tvého světa a po zamíchání začne další kolo.</p><p>Postupně tak roste nejen síla jednotlivých karet, ale i samotný balíček a možnosti panství.</p></section>
+
+      <section class="card" id="specialni"><span class="eyebrow">5 · Výjimky</span><h2>Nepřátelé, události a trvalé karty</h2><p>Některé karty se chovají jinak než běžné produkční karty. Mohou zůstávat ve hře, blokovat jiné karty, ukládat dlouhodobý efekt nebo vyžadovat zvláštní cenu.</p><p>Symbol ♾️ označuje efekt, který platí po dobu, kdy karta zůstává vyložená. Přesný text konkrétní karty vždy určuje její chování.</p></section>
+
+      <section class="card wide" id="ovladani"><span class="eyebrow">6 · Ovládání</span><h2>Co je dobré vědět</h2><p>Karty můžeš v aktivní zóně ručně přesouvat mezi dostupnými pozicemi. Počet pozic v řádku lze nastavit v menu. Prázdné pozice zůstávají skutečnými sloty a lze je využít pro vlastní uspořádání.</p><p>Hra se automaticky ukládá do tohoto prohlížeče. V menu můžeš stav také uložit do souboru a později jej znovu načíst. Knihovna a odhazovací balíček umožňují kdykoli prohlížet známé karty.</p><div class="tip">Pokud se konkrétní karta od obecného pravidla liší, řiď se textem a ovládacími prvky přímo na kartě.</div></section>
+    </div>
+
+    <footer>Patria · pravidla prototypu</footer>
+  </main>
+</body>
+</html>
